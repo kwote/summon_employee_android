@@ -1,5 +1,7 @@
 package employee.summon.asano.model;
 
+import android.os.Parcelable;
+
 import java.util.Date;
 
 public class AccessToken {

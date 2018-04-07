@@ -25,22 +25,28 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import employee.summon.asano.App;
 import employee.summon.asano.R;
 import employee.summon.asano.model.AccessToken;
+import employee.summon.asano.model.Department;
 import employee.summon.asano.model.LoginCredentials;
+import employee.summon.asano.rest.DepartmentService;
 import employee.summon.asano.rest.PeopleService;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -57,7 +63,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      */
     private static final int REQUEST_READ_CONTACTS = 0;
 
-    public static final String BASE_URL = "http://192.168.1.12:3000/api/";
     private static final String TAG = "SummonEmployee";
     private static Retrofit retrofit = null;
     /**
@@ -70,6 +75,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private Spinner mDepartmentView;
+
+    private boolean registerMode = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +99,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             }
         });
 
+        mDepartmentView = findViewById(R.id.department);
+
         Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -103,8 +113,27 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mProgressView = findViewById(R.id.login_progress);
 
         if (retrofit == null) {
-            retrofit = new Retrofit.Builder().baseUrl(BASE_URL).addConverterFactory(GsonConverterFactory.create()).build();
+            retrofit = new Retrofit.Builder()
+                    .baseUrl(getString(R.string.base_url))
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
         }
+        DepartmentService departmentService = retrofit.create(DepartmentService.class);
+        Call<List<Department>> call = departmentService.listDepartments();
+        call.enqueue(new Callback<List<Department>>() {
+            @Override
+            public void onResponse(Call<List<Department>> call, Response<List<Department>> response) {
+                List<Department> departments = response.body();
+                ArrayAdapter<Department> adapter = new ArrayAdapter<>(LoginActivity.this, android.R.layout.simple_spinner_item, departments);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                mDepartmentView.setAdapter(adapter);
+            }
+
+            @Override
+            public void onFailure(Call<List<Department>> call, Throwable t) {
+
+            }
+        });
     }
 
     private void populateAutoComplete() {
@@ -300,7 +329,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<Void, Void, AccessToken> {
 
         private final LoginCredentials credentials;
 
@@ -309,30 +338,30 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
+        protected AccessToken doInBackground(Void... params) {
             PeopleService peopleService = retrofit.create(PeopleService.class);
             Call<AccessToken> call = peopleService.login(credentials);
             try {
                 Response<AccessToken> response = call.execute();
                 if (response.errorBody() != null) {
                     ResponseBody error = response.errorBody();
+                    return null;
                 } else {
-                    AccessToken accessToken = response.body();
+                    return response.body();
                 }
             } catch (IOException e) {
                 Log.e(TAG, "doInBackground: ", e);
             }
-
-            // TODO: register the new account here.
-            return true;
+            return null;
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final AccessToken accessToken) {
             mAuthTask = null;
             showProgress(false);
 
-            if (success) {
+            if (accessToken != null) {
+                getApp().setAccessToken(accessToken);
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
                 startActivity(intent);
@@ -348,6 +377,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
             showProgress(false);
         }
+    }
+
+    private App getApp() {
+        return (App) getApplication();
     }
 }
 

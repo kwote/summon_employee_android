@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import employee.summon.asano.App;
 import employee.summon.asano.R;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,4 +44,7 @@ public class MainActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
     }
 
+    private App getApp() {
+        return (App) getApplication();
+    }
 }
