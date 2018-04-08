@@ -3,8 +3,10 @@ package employee.summon.asano.rest;
 import java.util.List;
 
 import employee.summon.asano.model.AccessToken;
+import employee.summon.asano.model.AddPerson;
 import employee.summon.asano.model.LoginCredentials;
 import employee.summon.asano.model.Person;
+import employee.summon.asano.model.PersonBase;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -15,7 +17,7 @@ public interface PeopleService {
     Call<List<Person>> listPeople();
 
     @POST("people")
-    Call<Person> addPerson(@Body Person person);
+    Call<Person> addPerson(@Body AddPerson person);
 
     @POST("people/login")
     Call<AccessToken> login(@Body LoginCredentials credentials);

@@ -4,120 +4,107 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.app.LoaderManager.LoaderCallbacks;
-
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.AsyncTask;
-
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
+import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import employee.summon.asano.App;
 import employee.summon.asano.R;
-import employee.summon.asano.model.AccessToken;
+import employee.summon.asano.model.AddPerson;
 import employee.summon.asano.model.Department;
-import employee.summon.asano.model.LoginCredentials;
+import employee.summon.asano.model.Person;
 import employee.summon.asano.rest.DepartmentService;
 import employee.summon.asano.rest.PeopleService;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
-import static android.Manifest.permission.READ_CONTACTS;
 
 /**
- * A login screen that offers login via email/password.
+ * A registration screen
  */
-public class LoginActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
     private boolean inProgress = false;
 
     // UI references.
     private EditText mEmailView;
+    private EditText mFirstNameView;
+    private EditText mLastNameView;
     private EditText mPasswordView;
     private View mProgressView;
-    private View mLoginFormView;
+    private View mRegisterFormView;
+    private Spinner mDepartmentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
         // Set up the login form.
         mEmailView = findViewById(R.id.email);
+        mFirstNameView = findViewById(R.id.firstname);
+        mLastNameView = findViewById(R.id.lastname);
 
         mPasswordView = findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    attemptRegister();
                     return true;
                 }
                 return false;
             }
         });
 
-        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
-        mEmailSignInButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                attemptLogin();
-            }
-        });
+        mDepartmentView = findViewById(R.id.department);
 
         Button mEmailRegisterButton = findViewById(R.id.email_register_button);
         mEmailRegisterButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                registerNewPerson();
+                attemptRegister();
             }
         });
 
-        mLoginFormView = findViewById(R.id.login_form);
-        mProgressView = findViewById(R.id.login_progress);
-    }
+        mRegisterFormView = findViewById(R.id.register_form);
+        mProgressView = findViewById(R.id.register_progress);
+        DepartmentService departmentService = getApp().getRetrofit().create(DepartmentService.class);
+        Call<List<Department>> call = departmentService.listDepartments();
+        call.enqueue(new Callback<List<Department>>() {
+            @Override
+            public void onResponse(Call<List<Department>> call, Response<List<Department>> response) {
+                List<Department> departments = response.body();
+                ArrayAdapter<Department> adapter = new ArrayAdapter<>(RegisterActivity.this, android.R.layout.simple_spinner_item, departments);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                mDepartmentView.setAdapter(adapter);
+            }
 
-    private void registerNewPerson() {
-        Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-        startActivity(intent);
-        finish();
+            @Override
+            public void onFailure(Call<List<Department>> call, Throwable t) {
+
+            }
+        });
     }
 
 
     /**
-     * Attempts to sign in or register the account specified by the login form.
+     * Attempts to register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
-     * errors are presented and no actual login attempt is made.
+     * errors are presented and no actual register attempt is made.
      */
-    private void attemptLogin() {
+    private void attemptRegister() {
         if (inProgress) {
             return;
         }
@@ -127,9 +114,12 @@ public class LoginActivity extends AppCompatActivity {
         mEmailView.setError(null);
         mPasswordView.setError(null);
 
-        // Store values at the time of the login attempt.
+        // Store values at the time of the attempt.
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
+        String firstName = mFirstNameView.getText().toString();
+        String lastName = mLastNameView.getText().toString();
+        Integer departmentId = ((Department)mDepartmentView.getSelectedItem()).getId();
 
         boolean cancel = false;
         View focusView = null;
@@ -138,6 +128,20 @@ public class LoginActivity extends AppCompatActivity {
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
+            cancel = true;
+        }
+
+        // Check for a valid first name, if the user entered one.
+        if (TextUtils.isEmpty(firstName)) {
+            mFirstNameView.setError(getString(R.string.error_field_required));
+            focusView = mFirstNameView;
+            cancel = true;
+        }
+
+        // Check for a valid last name, if the user entered one.
+        if (TextUtils.isEmpty(lastName)) {
+            mLastNameView.setError(getString(R.string.error_field_required));
+            focusView = mLastNameView;
             cancel = true;
         }
 
@@ -153,20 +157,20 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         if (cancel) {
-            // There was an error; don't attempt login and focus the first
+            // There was an error; don't attempt register and focus the first
             // form field with an error.
             focusView.requestFocus();
         } else {
             // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
+            // perform the user register attempt.
             showProgress(true);
             PeopleService peopleService = getApp().getRetrofit().create(PeopleService.class);
-            LoginCredentials credentials = new LoginCredentials(email, password);
-            Call<AccessToken> call = peopleService.login(credentials);
+            AddPerson addPerson = new AddPerson(firstName, lastName, email, password, departmentId);
+            Call<Person> call = peopleService.addPerson(addPerson);
 
-            call.enqueue(new Callback<AccessToken>() {
+            call.enqueue(new Callback<Person>() {
                 @Override
-                public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
+                public void onResponse(Call<Person> call, Response<Person> response) {
                     showProgress(false);
                     if (response.errorBody() != null) {
                         ResponseBody error = response.errorBody();
@@ -174,9 +178,8 @@ public class LoginActivity extends AppCompatActivity {
                         mPasswordView.setError(getString(R.string.error_incorrect_password));
                         mPasswordView.requestFocus();
                     } else {
-                        AccessToken accessToken = response.body();
-                        getApp().setAccessToken(accessToken);
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                        Person person = response.body();
+                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_TASK_ON_HOME);
                         startActivity(intent);
                         finish();
@@ -184,7 +187,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailure(Call<AccessToken> call, Throwable t) {
+                public void onFailure(Call<Person> call, Throwable t) {
                     showProgress(false);
                 }
             });
@@ -212,12 +215,12 @@ public class LoginActivity extends AppCompatActivity {
         // the progress spinner.
         int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+        mRegisterFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mRegisterFormView.animate().setDuration(shortAnimTime).alpha(
                 show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(Animator animation) {
-                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+                mRegisterFormView.setVisibility(show ? View.GONE : View.VISIBLE);
             }
         });
 
