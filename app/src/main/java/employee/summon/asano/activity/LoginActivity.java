@@ -168,7 +168,7 @@ public class LoginActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<AccessToken> call, Response<AccessToken> response) {
                     showProgress(false);
-                    if (response.errorBody() != null) {
+                    if (!response.isSuccessful()) {
                         ResponseBody error = response.errorBody();
 
                         mPasswordView.setError(getString(R.string.error_incorrect_password));

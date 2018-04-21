@@ -12,20 +12,14 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Spinner;
 import android.widget.TextView;
-
-import java.util.List;
 
 import employee.summon.asano.App;
 import employee.summon.asano.R;
 import employee.summon.asano.model.AddPerson;
-import employee.summon.asano.model.Department;
 import employee.summon.asano.model.Person;
-import employee.summon.asano.rest.DepartmentService;
 import employee.summon.asano.rest.PeopleService;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -45,7 +39,6 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText mPasswordView;
     private View mProgressView;
     private View mRegisterFormView;
-    private Spinner mDepartmentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,8 +61,6 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        mDepartmentView = findViewById(R.id.department);
-
         Button mEmailRegisterButton = findViewById(R.id.email_register_button);
         mEmailRegisterButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -80,22 +71,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         mRegisterFormView = findViewById(R.id.register_form);
         mProgressView = findViewById(R.id.register_progress);
-        DepartmentService departmentService = getApp().getRetrofit().create(DepartmentService.class);
-        Call<List<Department>> call = departmentService.listDepartments();
-        call.enqueue(new Callback<List<Department>>() {
-            @Override
-            public void onResponse(Call<List<Department>> call, Response<List<Department>> response) {
-                List<Department> departments = response.body();
-                ArrayAdapter<Department> adapter = new ArrayAdapter<>(RegisterActivity.this, android.R.layout.simple_spinner_item, departments);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                mDepartmentView.setAdapter(adapter);
-            }
-
-            @Override
-            public void onFailure(Call<List<Department>> call, Throwable t) {
-
-            }
-        });
     }
 
 
@@ -119,7 +94,6 @@ public class RegisterActivity extends AppCompatActivity {
         String password = mPasswordView.getText().toString();
         String firstName = mFirstNameView.getText().toString();
         String lastName = mLastNameView.getText().toString();
-        Integer departmentId = ((Department)mDepartmentView.getSelectedItem()).getId();
 
         boolean cancel = false;
         View focusView = null;
@@ -165,14 +139,14 @@ public class RegisterActivity extends AppCompatActivity {
             // perform the user register attempt.
             showProgress(true);
             PeopleService peopleService = getApp().getRetrofit().create(PeopleService.class);
-            AddPerson addPerson = new AddPerson(firstName, lastName, email, password, departmentId);
+            AddPerson addPerson = new AddPerson(firstName, lastName, email, password, 1, false);
             Call<Person> call = peopleService.addPerson(addPerson);
 
             call.enqueue(new Callback<Person>() {
                 @Override
                 public void onResponse(Call<Person> call, Response<Person> response) {
                     showProgress(false);
-                    if (response.errorBody() != null) {
+                    if (!response.isSuccessful()) {
                         ResponseBody error = response.errorBody();
 
                         mPasswordView.setError(getString(R.string.error_incorrect_password));

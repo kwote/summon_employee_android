@@ -19,8 +19,10 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
-    <string name="base_url">http://192.168.1.12:3000/api/</string>
+    <string name="base_url">https://summon-employee.herokuapp.com/api/</string>
     <string name="title_access_token">Access token</string>
     <string name="prompt_firstname">First Name</string>
     <string name="prompt_lastname">Last Name</string>
+    <string name="error_unknown">Unknown error</string>
+    <string name="refresh">Refresh</string>
 </resources>
