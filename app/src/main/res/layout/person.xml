@@ -1,20 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable name="person" type="employee.summon.asano.model.Person"/>
     </data>
-    <LinearLayout
-        android:orientation="horizontal"
+    <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <TextView android:layout_width="wrap_content"
+            android:id="@id/firstname"
             android:layout_height="wrap_content"
-            android:text="@{person.email}"/>
+            android:text="@{person.firstName + ' ' + person.lastName}"
+            android:textStyle="bold"
+            android:textSize="@dimen/name_size"
+            app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
+            android:id="@+id/email"
             android:layout_height="wrap_content"
-            android:text="@{person.firstName}"/>
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@{person.lastName}"/>
-    </LinearLayout>
+            android:text="@{person.email}"
+            app:layout_constraintTop_toBottomOf="@id/firstname"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"/>
+        <ImageView
+            android:layout_width="@dimen/indicator_size"
+            android:layout_height="@dimen/indicator_size"
+            android:src="@{person.online ? @drawable/person_online : @drawable/person_offline}"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+        />
+    </android.support.constraint.ConstraintLayout>
 </layout>

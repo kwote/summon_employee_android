@@ -25,4 +25,7 @@
     <string name="prompt_lastname">Last Name</string>
     <string name="error_unknown">Unknown error</string>
     <string name="refresh">Refresh</string>
+    <string name="title_activity_call">CallActivity</string>
+    <string name="clear_tokens">Clear Tokens</string>
+    <string name="logout">Logout</string>
 </resources>
