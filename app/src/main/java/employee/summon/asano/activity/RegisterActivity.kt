@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.activity_register.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.regex.Pattern
 
 /**
  * A registration screen
@@ -68,6 +69,8 @@ class RegisterActivity : AppCompatActivity() {
         val password = password_register.text.toString()
         val firstName = firstname.text.toString()
         val lastName = lastname.text.toString()
+        var patronymic : String? = patronymic_view.text.toString()
+        var phone : String? = phone_view.text.toString()
 
         var cancel = false
         var focusView: View? = null
@@ -93,14 +96,26 @@ class RegisterActivity : AppCompatActivity() {
             cancel = true
         }
 
+        if (TextUtils.isEmpty(patronymic)) {
+            patronymic = null
+        }
+
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
-            email_register!!.error = getString(R.string.error_field_required)
+            email_register.error = getString(R.string.error_field_required)
             focusView = email_register
             cancel = true
         } else if (!isEmailValid(email)) {
-            email_register!!.error = getString(R.string.error_invalid_email)
+            email_register.error = getString(R.string.error_invalid_email)
             focusView = email_register
+            cancel = true
+        }
+
+        if (TextUtils.isEmpty(phone)) {
+            phone = null
+        } else if (!isPhoneValid(phone)) {
+            phone_view.error = getString(R.string.error_invalid_phone)
+            focusView = phone_view
             cancel = true
         }
 
@@ -113,7 +128,7 @@ class RegisterActivity : AppCompatActivity() {
             // perform the user register attempt.
             showProgress(true)
             val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
-            val addPerson = AddPerson(firstName, lastName, email, password, 1, false)
+            val addPerson = AddPerson(firstName, lastName, patronymic, email, phone, password, 1, false)
             val call = peopleService.addPerson(addPerson)
 
             call.enqueue(object : Callback<Person> {
@@ -125,7 +140,6 @@ class RegisterActivity : AppCompatActivity() {
                         password_register.error = getString(R.string.error_incorrect_password)
                         password_register.requestFocus()
                     } else {
-                        val person = response.body()
                         val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
                         startActivity(intent)
@@ -138,6 +152,20 @@ class RegisterActivity : AppCompatActivity() {
                 }
             })
         }
+    }
+
+    companion object Validator {
+        val PHONE_REGEX = Pattern.compile("^\\+([0-9\\-]?){9,11}[0-9]$")
+        fun validatePhone(phone: String): Boolean {
+            val matcher = PHONE_REGEX.matcher(phone)
+            return matcher.matches()
+        }
+    }
+
+    private fun isPhoneValid(phone: String?): Boolean {
+        if (phone != null)
+            return validatePhone(phone)
+        return false
     }
 
     private fun isEmailValid(email: String): Boolean {
