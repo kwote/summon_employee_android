@@ -12,15 +12,18 @@ interface PeopleService {
     @GET("people")
     fun listPeople(@Query("departmentId") departmentId: Int?): Call<List<Person>>
 
+    @GET("people")
+    fun getPerson(@Path("id") personId: Int?, @Header("Authorization") accessToken: String): Call<Person>
+
     @POST("people")
     fun addPerson(@Body person: AddPerson): Call<Person>
 
     @POST("people/login")
-    fun login(@Body credentials: LoginCredentials): Call<AccessToken>
+    fun login(@Body credentials: LoginCredentials, @Query("include") obj: String = "user"): Call<AccessToken>
 
     @POST("people/logout")
-    fun logout(@Query("access_token") accessToken: String): Call<ResponseBody>
+    fun logout(@Header("Authorization") accessToken: String): Call<ResponseBody>
 
     @DELETE("people/{id}/accessTokens")
-    fun clearTokens(@Path("id") personId: Int?, @Query("access_token") accessToken: String): Call<ResponseBody>
+    fun clearTokens(@Path("id") personId: Int?, @Header("Authorization") accessToken: String): Call<ResponseBody>
 }

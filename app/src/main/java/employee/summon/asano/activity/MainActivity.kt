@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
+import android.widget.AdapterView
 
 import employee.summon.asano.App
 import employee.summon.asano.PersonAdapter
@@ -33,6 +35,18 @@ class MainActivity : AppCompatActivity() {
         false
     }
 
+    private val mOnItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+        val person = parent.adapter.getItem(position)
+        summonPerson(person as Person?)
+    }
+
+    private fun summonPerson(person: Person?) {
+        val intent = Intent(this@MainActivity, CallActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
+        startActivity(intent)
+        finish()
+    }
+
     private val app: App
         get() = application as App
 
@@ -46,6 +60,7 @@ class MainActivity : AppCompatActivity() {
         refresh.setOnClickListener { reloadPeople() }
         clear_tokens.setOnClickListener { clearTokens() }
         logout.setOnClickListener { performLogout() }
+        people_view.onItemClickListener = mOnItemClickListener
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
@@ -53,9 +68,10 @@ class MainActivity : AppCompatActivity() {
     private fun clearTokens() {
         val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
         val accessToken = app.accessToken!!
-        val call = peopleService.clearTokens(accessToken.personId, accessToken.id)
+        val call = peopleService.clearTokens(accessToken.userId, accessToken.id)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
+                Log.e("MainActivity", "Clear tokens failed", t)
             }
 
             override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {

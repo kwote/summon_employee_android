@@ -17,6 +17,7 @@ import employee.summon.asano.App
 import employee.summon.asano.R
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.LoginCredentials
+import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
 import kotlinx.android.synthetic.main.activity_login.*
 import retrofit2.Call
@@ -110,8 +111,8 @@ class LoginActivity : AppCompatActivity() {
 
             call.enqueue(object : Callback<AccessToken> {
                 override fun onResponse(call: Call<AccessToken>, response: Response<AccessToken>) {
-                    showProgress(false)
                     if (!response.isSuccessful) {
+                        showProgress(false)
                         val error = response.errorBody()
 
                         password_login.error = getString(R.string.error_incorrect_password)
