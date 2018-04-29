@@ -30,4 +30,7 @@
     <string name="prompt_phone">Phone number (optional)</string>
     <string name="prompt_password_confirm">Password (confirm)</string>
     <string name="online">Online</string>
+    <string name="employee_photo">Employee\'s photo</string>
+    <string name="action_summon">Summon</string>
+    <string name="call">Call</string>
 </resources>
