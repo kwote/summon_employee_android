@@ -13,9 +13,8 @@
     <string name="error_invalid_password">This password is too short</string>
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
-    <string name="title_activity_main">Employees</string>
-    <string name="title_home">Home</string>
-    <string name="title_dashboard">Dashboard</string>
+    <string name="title_employees">Employees</string>
+    <string name="title_summon_requests">Summon Requests</string>
     <string name="title_notifications">Notifications</string>
     <string name="base_url">http://192.168.1.12:3000/api/</string>
     <string name="title_access_token">Access token</string>
@@ -33,4 +32,5 @@
     <string name="employee_photo">Employee\'s photo</string>
     <string name="action_summon">Summon</string>
     <string name="call">Call</string>
+    <string name="summon_failed">Summon failed</string>
 </resources>

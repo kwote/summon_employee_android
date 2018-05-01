@@ -8,10 +8,13 @@ import android.util.Log
 import android.widget.AdapterView
 
 import employee.summon.asano.App
-import employee.summon.asano.PersonAdapter
+import employee.summon.asano.adapters.PersonAdapter
 import employee.summon.asano.R
+import employee.summon.asano.adapters.SummonRequestAdapter
 import employee.summon.asano.model.Person
+import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.PeopleService
+import employee.summon.asano.rest.SummonRequestService
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -22,10 +25,12 @@ class MainActivity : AppCompatActivity() {
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
-            R.id.navigation_home -> {
+            R.id.navigation_employees -> {
+                reloadPeople()
                 return@OnNavigationItemSelectedListener true
             }
-            R.id.navigation_dashboard -> {
+            R.id.navigation_summon_requests -> {
+                reloadSummonRequests()
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_notifications -> {
@@ -35,13 +40,17 @@ class MainActivity : AppCompatActivity() {
         false
     }
 
-    private val mOnItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+    private val mOnPersonClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
         val person = parent.adapter.getItem(position)
         summonPerson(person as Person?)
     }
 
+    private val mOnSummonRequestClickListener = AdapterView.OnItemClickListener { _, _, _, _ ->
+    }
+
     private fun summonPerson(person: Person?) {
         val intent = Intent(this@MainActivity, CallActivity::class.java)
+        intent.putExtra(CallActivity.PERSON, person)
         startActivity(intent)
     }
 
@@ -58,7 +67,6 @@ class MainActivity : AppCompatActivity() {
         refresh.setOnClickListener { reloadPeople() }
         clear_tokens.setOnClickListener { clearTokens() }
         logout.setOnClickListener { performLogout() }
-        people_view.onItemClickListener = mOnItemClickListener
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
@@ -104,10 +112,27 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback<List<Person>> {
             override fun onResponse(call: Call<List<Person>>, response: Response<List<Person>>) {
                 val people = response.body()
-                people_view.adapter = PersonAdapter(people, layoutInflater)
+                list_view.adapter = PersonAdapter(people, layoutInflater)
+                list_view.onItemClickListener = mOnPersonClickListener
             }
 
             override fun onFailure(call: Call<List<Person>>, t: Throwable) {
+                access_token.error = getString(R.string.error_unknown)
+            }
+        })
+    }
+
+    private fun reloadSummonRequests() {
+        val peopleService = app.retrofit!!.create<SummonRequestService>(SummonRequestService::class.java)
+        val call = peopleService.listRequests(app.accessToken?.userId)
+        call.enqueue(object : Callback<List<SummonRequest>> {
+            override fun onResponse(call: Call<List<SummonRequest>>, response: Response<List<SummonRequest>>) {
+                val requests = response.body()
+                list_view.adapter = SummonRequestAdapter(requests, layoutInflater)
+                list_view.onItemClickListener = mOnSummonRequestClickListener
+            }
+
+            override fun onFailure(call: Call<List<SummonRequest>>, t: Throwable) {
                 access_token.error = getString(R.string.error_unknown)
             }
         })

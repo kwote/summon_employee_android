@@ -32,6 +32,10 @@ kapt {
     generateStubs = true
 }
 
+androidExtensions {
+    experimental = true
+}
+
 dependencies {
     kapt "com.android.databinding:compiler:$gradle_version"
     implementation fileTree(include: ['*.jar'], dir: 'libs')

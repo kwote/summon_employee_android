@@ -8,9 +8,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <TextView android:layout_width="wrap_content"
-            android:id="@id/firstname"
+            android:id="@+id/fullname"
             android:layout_height="wrap_content"
-            android:text='@{person.firstName + (person.patronymic != null ? " " + person.patronymic : "") + " " + person.lastName}'
+            android:text='@{person.fullName}'
             android:textStyle="bold"
             android:textSize="@dimen/name_size"
             app:layout_constraintLeft_toLeftOf="parent"/>
@@ -18,14 +18,14 @@
             android:id="@+id/email"
             android:layout_height="wrap_content"
             android:text="@{person.email}"
-            app:layout_constraintTop_toBottomOf="@id/firstname"
+            app:layout_constraintTop_toBottomOf="@id/fullname"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@id/phone_view"
             android:layout_height="wrap_content"
             android:text="@{person.phone}"
-            app:layout_constraintTop_toBottomOf="@id/firstname"
+            app:layout_constraintTop_toBottomOf="@id/fullname"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toLeftOf="@id/online"/>
         <ImageView

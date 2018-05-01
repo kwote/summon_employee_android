@@ -19,7 +19,7 @@
         app:layout_constraintLeft_toLeftOf="parent" />
 
     <ListView
-        android:id="@+id/people_view"
+        android:id="@+id/list_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"

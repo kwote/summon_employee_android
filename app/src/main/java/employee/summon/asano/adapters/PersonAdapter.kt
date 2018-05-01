@@ -1,10 +1,11 @@
-package employee.summon.asano
+package employee.summon.asano.adapters
 
 import android.databinding.DataBindingUtil
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import employee.summon.asano.R
 import employee.summon.asano.databinding.PersonBinding
 import employee.summon.asano.model.Person
 

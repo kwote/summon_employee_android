@@ -155,7 +155,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     companion object Validator {
-        val PHONE_REGEX = Pattern.compile("^\\+([0-9\\-]?){9,11}[0-9]$")
+        private val PHONE_REGEX = Pattern.compile("^\\+([0-9\\-]?){9,11}[0-9]$")
         fun validatePhone(phone: String): Boolean {
             val matcher = PHONE_REGEX.matcher(phone)
             return matcher.matches()
