@@ -6,6 +6,7 @@ import android.support.design.widget.BottomNavigationView
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.AdapterView
+import android.widget.Toast
 
 import employee.summon.asano.App
 import employee.summon.asano.adapters.PersonAdapter
@@ -20,8 +21,28 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import com.tylerjroach.eventsource.EventSource
+import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
+    private var sseHandler: SSEHandler? = SSEHandler()
+
+    private var eventSource: EventSource? = null
+
+    private fun startEventSource() {
+        eventSource = EventSource.Builder(getString(R.string.base_url) + "summonrequests/change-stream/")
+                .eventHandler(sseHandler)
+                .build()
+        eventSource!!.connect()
+    }
+
+    private fun stopEventSource() {
+        if (eventSource != null) {
+            eventSource!!.close()
+        }
+        sseHandler = null
+    }
 
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
@@ -41,14 +62,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mOnPersonClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
-        val person = parent.adapter.getItem(position)
-        summonPerson(person as Person?)
+        val person = parent.adapter.getItem(position) as Person
+        summonPerson(person)
     }
 
     private val mOnSummonRequestClickListener = AdapterView.OnItemClickListener { _, _, _, _ ->
     }
 
-    private fun summonPerson(person: Person?) {
+    private fun summonPerson(person: Person) {
         val intent = Intent(this@MainActivity, CallActivity::class.java)
         intent.putExtra(CallActivity.PERSON, person)
         startActivity(intent)
@@ -69,6 +90,16 @@ class MainActivity : AppCompatActivity() {
         logout.setOnClickListener { performLogout() }
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        startEventSource()
+    }
+
+    override fun onStop() {
+        stopEventSource()
+        super.onStop()
     }
 
     private fun clearTokens() {
