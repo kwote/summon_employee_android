@@ -17,6 +17,7 @@
     <string name="title_summon_requests">Summon Requests</string>
     <string name="title_notifications">Notifications</string>
     <string name="base_url">http://192.168.1.12:3000/api/</string>
+    <string name="base_url_test">https://summon-employee.herokuapp.com/api/</string>
     <string name="title_access_token">Access token</string>
     <string name="prompt_firstname">First Name</string>
     <string name="prompt_lastname">Last Name</string>
