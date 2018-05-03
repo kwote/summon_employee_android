@@ -120,6 +120,7 @@ class LoginActivity : AppCompatActivity() {
                     } else {
                         val accessToken = response.body()
                         app.accessToken = accessToken
+                        app.startEventSource()
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
                         startActivity(intent)

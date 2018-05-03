@@ -10,14 +10,13 @@ import kotlinx.android.synthetic.main.activity_call.*
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import employee.summon.asano.getStringTimeStampWithDate
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.SummonRequestService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 
 class CallActivity : Activity() {
@@ -41,8 +40,8 @@ class CallActivity : Activity() {
         summon_employee.setOnClickListener({ _ ->
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
             val addRequest = SummonRequest(null, app.accessToken?.userId!!, person!!.id, now, null, null)
-            val summonRequestService = app.retrofit!!.create<SummonRequestService>(SummonRequestService::class.java)
-            val call = summonRequestService.addSummonRequest(addRequest)
+            val service = app.getService<SummonRequestService>()
+            val call = service.addSummonRequest(addRequest)
 
             call.enqueue(object : Callback<SummonRequest> {
                 override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
@@ -61,13 +60,4 @@ class CallActivity : Activity() {
     companion object {
         const val PERSON = "person"
     }
-}
-
-
-/** Converting from Date to String**/
-fun Date.getStringTimeStampWithDate(): String {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-            Locale.getDefault())
-    dateFormat.timeZone = TimeZone.getTimeZone("GMT")
-    return dateFormat.format(this)
 }

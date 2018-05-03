@@ -1,16 +1,26 @@
 package employee.summon.asano.rest
 
 import employee.summon.asano.model.SummonRequest
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.*
 
 interface SummonRequestService {
     @GET("summonrequests")
-    fun listRequests(@Query("callerId") callerId: Int?): Call<List<SummonRequest>>
+    fun listOutgoingRequests(@Query("filter[where][callerId]") callerId: Int?): Call<List<SummonRequest>>
+
+    @GET("summonrequests")
+    fun listIncomingRequests(@Query("filter[where][targetId]") callerId: Int?): Call<List<SummonRequest>>
 
     @GET("summonrequests")
     fun getSummonRequest(@Path("id") requestId: Int?): Call<SummonRequest>
 
     @POST("summonrequests")
     fun addSummonRequest(@Body request: SummonRequest): Call<SummonRequest>
+
+    @PUT("summonrequests/{id}/accept")
+    fun acceptRequest(@Path("id") requestId: Int?): Call<SummonRequest>
+
+    @DELETE("summonrequests/{id}")
+    fun deleteRequest(@Path("id") requestId: Int?): Call<ResponseBody>
 }

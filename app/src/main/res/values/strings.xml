@@ -14,8 +14,8 @@
     <string name="error_incorrect_password">This password is incorrect</string>
     <string name="error_field_required">This field is required</string>
     <string name="title_employees">Employees</string>
-    <string name="title_summon_requests">Summon Requests</string>
-    <string name="title_notifications">Notifications</string>
+    <string name="title_incoming_requests">Incoming</string>
+    <string name="title_outgoing_requests">Outgoing</string>
     <string name="base_url">http://192.168.1.12:3000/api/</string>
     <string name="base_url_test">https://summon-employee.herokuapp.com/api/</string>
     <string name="title_access_token">Access token</string>
@@ -34,4 +34,6 @@
     <string name="action_summon">Summon</string>
     <string name="call">Call</string>
     <string name="summon_failed">Summon failed</string>
+    <string name="title_activity_summon">SummonActivity</string>
+    <string name="clear">Clear</string>
 </resources>

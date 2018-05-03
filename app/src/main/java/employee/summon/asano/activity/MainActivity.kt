@@ -9,9 +9,9 @@ import android.widget.AdapterView
 import android.widget.Toast
 
 import employee.summon.asano.App
-import employee.summon.asano.adapters.PersonAdapter
+import employee.summon.asano.adapter.PersonAdapter
 import employee.summon.asano.R
-import employee.summon.asano.adapters.SummonRequestAdapter
+import employee.summon.asano.adapter.SummonRequestAdapter
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.PeopleService
@@ -21,40 +21,33 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import com.tylerjroach.eventsource.EventSource
-import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
-    private var sseHandler: SSEHandler? = SSEHandler()
-
-    private var eventSource: EventSource? = null
-
-    private fun startEventSource() {
-        eventSource = EventSource.Builder(getString(R.string.base_url) + "summonrequests/change-stream/")
-                .eventHandler(sseHandler)
-                .build()
-        eventSource!!.connect()
-    }
-
-    private fun stopEventSource() {
-        if (eventSource != null) {
-            eventSource!!.close()
-        }
-        sseHandler = null
-    }
-
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_employees -> {
                 reloadPeople()
+
+                refresh.setOnClickListener { reloadPeople() }
+                clear.text = getString(R.string.clear_tokens)
+                clear.setOnClickListener { clearTokens() }
                 return@OnNavigationItemSelectedListener true
             }
-            R.id.navigation_summon_requests -> {
-                reloadSummonRequests()
+            R.id.navigation_incoming -> {
+                reloadIncomingRequests()
+
+                refresh.setOnClickListener { reloadIncomingRequests() }
+                clear.text = getString(R.string.clear)
+                clear.setOnClickListener { }
                 return@OnNavigationItemSelectedListener true
             }
-            R.id.navigation_notifications -> {
+            R.id.navigation_outgoing -> {
+                reloadOutgoingRequests()
+
+                refresh.setOnClickListener { reloadOutgoingRequests() }
+                clear.text = getString(R.string.clear)
+                clear.setOnClickListener { }
                 return@OnNavigationItemSelectedListener true
             }
         }
@@ -66,7 +59,9 @@ class MainActivity : AppCompatActivity() {
         summonPerson(person)
     }
 
-    private val mOnSummonRequestClickListener = AdapterView.OnItemClickListener { _, _, _, _ ->
+    private val mOnSummonRequestClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
+        val request = parent.adapter.getItem(position) as SummonRequest
+        acceptRequest(request)
     }
 
     private fun summonPerson(person: Person) {
@@ -86,26 +81,18 @@ class MainActivity : AppCompatActivity() {
         reloadPeople()
 
         refresh.setOnClickListener { reloadPeople() }
-        clear_tokens.setOnClickListener { clearTokens() }
+        clear.text = getString(R.string.clear_tokens)
+        clear.setOnClickListener { clearTokens() }
+
         logout.setOnClickListener { performLogout() }
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
     }
 
-    override fun onStart() {
-        super.onStart()
-        startEventSource()
-    }
-
-    override fun onStop() {
-        stopEventSource()
-        super.onStop()
-    }
-
     private fun clearTokens() {
-        val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
+        val service = app.getService<PeopleService>()
         val accessToken = app.accessToken!!
-        val call = peopleService.clearTokens(accessToken.userId, accessToken.id)
+        val call = service.clearTokens(accessToken.userId, app.accessToken!!.id)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
                 Log.e("MainActivity", "Clear tokens failed", t)
@@ -121,14 +108,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun performLogout() {
-        val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
-        val accessToken = app.accessToken!!
-        val call = peopleService.logout(accessToken.id)
+        val service = app.getService<PeopleService>()
+        val call = service.logout(app.accessToken!!.id)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
             }
 
             override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
+                app.stopEventSource()
                 val intent = Intent(this@MainActivity, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
                 startActivity(intent)
@@ -138,8 +125,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reloadPeople() {
-        val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
-        val call = peopleService.listPeople(1)
+        val service = app.getService<PeopleService>()
+        val call = service.listPeople(1)
         call.enqueue(object : Callback<List<Person>> {
             override fun onResponse(call: Call<List<Person>>, response: Response<List<Person>>) {
                 val people = response.body()
@@ -153,18 +140,53 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    private fun reloadSummonRequests() {
-        val peopleService = app.retrofit!!.create<SummonRequestService>(SummonRequestService::class.java)
-        val call = peopleService.listRequests(app.accessToken?.userId)
-        call.enqueue(object : Callback<List<SummonRequest>> {
-            override fun onResponse(call: Call<List<SummonRequest>>, response: Response<List<SummonRequest>>) {
-                val requests = response.body()
-                list_view.adapter = SummonRequestAdapter(requests, layoutInflater)
-                list_view.onItemClickListener = mOnSummonRequestClickListener
+    private val requestsCallback = object : Callback<List<SummonRequest>> {
+        override fun onResponse(call: Call<List<SummonRequest>>, response: Response<List<SummonRequest>>) {
+            val requests = response.body()
+            list_view.adapter = SummonRequestAdapter(requests, layoutInflater)
+            list_view.onItemClickListener = mOnSummonRequestClickListener
+        }
+
+        override fun onFailure(call: Call<List<SummonRequest>>, t: Throwable) {
+            access_token.error = getString(R.string.error_unknown)
+        }
+    }
+
+    private fun reloadIncomingRequests() {
+        val service = app.getService<SummonRequestService>()
+        val call = service.listIncomingRequests(app.accessToken?.userId)
+        call.enqueue(requestsCallback)
+    }
+
+    private fun reloadOutgoingRequests() {
+        val service = app.getService<SummonRequestService>()
+        val call = service.listOutgoingRequests(app.accessToken?.userId)
+        call.enqueue(requestsCallback)
+    }
+
+    private fun acceptRequest(request: SummonRequest) {
+        val service = app.getService<SummonRequestService>()
+        val call = service.acceptRequest(request.id)
+        call.enqueue(object : Callback<SummonRequest> {
+            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
+                Log.e("MainActivity", "Accept request failed", t)
             }
 
-            override fun onFailure(call: Call<List<SummonRequest>>, t: Throwable) {
-                access_token.error = getString(R.string.error_unknown)
+            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
+                Toast.makeText(this@MainActivity, "Request accepted", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    private fun deleteRequest(request: SummonRequest) {
+        val service = app.getService<SummonRequestService>()
+        val call = service.deleteRequest(request.id)
+        call.enqueue(object : Callback<ResponseBody> {
+            override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
+                Log.e("MainActivity", "Delete request failed", t)
+            }
+
+            override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
             }
         })
     }

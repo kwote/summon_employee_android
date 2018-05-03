@@ -1,12 +1,15 @@
 package employee.summon.asano.model
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Parcelize
 data class SummonRequest(val id: Int?, private val callerId: Int, val targetId: Int,
                          private val summonTime: String, private val receiveTime: String?,
-                         private val acceptTime: String?) {
+                         private val acceptTime: String?) : Parcelable {
     fun caller(): String {
         return callerId.toString()
     }

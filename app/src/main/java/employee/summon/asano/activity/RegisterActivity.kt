@@ -127,9 +127,9 @@ class RegisterActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user register attempt.
             showProgress(true)
-            val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
+            val service = app.getService<PeopleService>()
             val addPerson = AddPerson(firstName, lastName, patronymic, email, phone, password, 1, false)
-            val call = peopleService.addPerson(addPerson)
+            val call = service.addPerson(addPerson)
 
             call.enqueue(object : Callback<Person> {
                 override fun onResponse(call: Call<Person>, response: Response<Person>) {

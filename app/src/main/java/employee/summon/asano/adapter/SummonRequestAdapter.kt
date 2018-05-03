@@ -1,4 +1,4 @@
-package employee.summon.asano.adapters
+package employee.summon.asano.adapter
 
 import android.databinding.DataBindingUtil
 import android.view.LayoutInflater
