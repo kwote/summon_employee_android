@@ -1,9 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data class="SummonActivityBinding">
+        <variable name="caller" type="employee.summon.asano.model.Person"/>
+        <variable name="request" type="employee.summon.asano.model.SummonRequest"/>
+    </data>
+<android.support.constraint.ConstraintLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".activity.SummonActivity">
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/user_photo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/person_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:contentDescription="@string/employee_photo"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin" />
+
+    <TextView android:layout_width="wrap_content"
+        android:id="@id/fullname"
+        android:layout_height="wrap_content"
+        android:text='@{person.fullName}'
+        android:textStyle="bold"
+        android:textSize="@dimen/name_size"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/user_photo"/>
+    <TextView android:layout_width="wrap_content"
+        android:id="@id/email"
+        android:layout_height="wrap_content"
+        android:text="@{person.email}"
+        app:layout_constraintTop_toBottomOf="@id/fullname"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+    <TextView android:layout_width="wrap_content"
+        android:id="@id/phone_view"
+        android:layout_height="wrap_content"
+        android:text="@{person.phone}"
+        app:layout_constraintTop_toBottomOf="@id/fullname"
+        app:layout_constraintRight_toRightOf="parent"/>
+    <Button
+        android:id="@+id/accept_request"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/action_accept"
+        app:layout_constraintTop_toBottomOf="@id/email"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+    <Button
+        android:id="@+id/reject_request"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/action_reject"
+        android:enabled="false"
+        app:layout_constraintTop_toBottomOf="@id/email"
+        app:layout_constraintRight_toRightOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>
+</layout>

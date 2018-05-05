@@ -23,7 +23,7 @@
     <string name="prompt_lastname">Last Name</string>
     <string name="error_unknown">Unknown error</string>
     <string name="refresh">Refresh</string>
-    <string name="title_activity_call">Call Employee</string>
+    <string name="title_activity_person">Call Employee</string>
     <string name="clear_tokens">Clear Tokens</string>
     <string name="logout">Logout</string>
     <string name="prompt_patronymic">Patronymic (optional)</string>
@@ -36,4 +36,8 @@
     <string name="summon_failed">Summon failed</string>
     <string name="title_activity_summon">SummonActivity</string>
     <string name="clear">Clear</string>
+    <string name="cancel_successful">Request canceled</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_reject">Reject</string>
+    <string name="prompt_post">Post</string>
 </resources>

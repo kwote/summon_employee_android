@@ -65,8 +65,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun summonPerson(person: Person) {
-        val intent = Intent(this@MainActivity, CallActivity::class.java)
-        intent.putExtra(CallActivity.PERSON, person)
+        val intent = Intent(this@MainActivity, PersonActivity::class.java)
+        intent.putExtra(PersonActivity.PERSON, person)
         startActivity(intent)
     }
 

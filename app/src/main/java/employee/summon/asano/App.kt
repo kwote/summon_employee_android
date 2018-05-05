@@ -7,9 +7,9 @@ import com.google.gson.Gson
 import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
+import employee.summon.asano.activity.RequestReceiver
 
 import employee.summon.asano.model.AccessToken
-import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.model.SummonRequestMessage
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -74,7 +74,8 @@ class App : Application() {
             val request = Gson().fromJson<SummonRequestMessage>(message.data, SummonRequestMessage::class.java)
             if (request.data.targetId == accessToken?.userId) {
                 val intent = Intent(REQUEST_RECEIVED)
-                intent.putExtra(MESSAGE, request.data)
+                intent.setClass(this@App, RequestReceiver::class.java)
+                intent.putExtra(REQUEST, request.data)
                 sendBroadcast(intent)
             }
         }
@@ -91,6 +92,6 @@ class App : Application() {
     companion object {
         const val REQUEST_URL_SUFFIX = "summonrequests/change-stream/"
         const val REQUEST_RECEIVED = "employee.summon.asano.REQUEST_RECEIVED"
-        const val MESSAGE = "request_extra"
+        const val REQUEST = "request_extra"
     }
 }

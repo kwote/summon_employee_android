@@ -11,7 +11,7 @@ class RequestReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         // This method is called when the BroadcastReceiver is receiving an Intent broadcast.
-        val request = intent.getParcelableExtra<SummonRequest>(App.MESSAGE)
+        val request = intent.getParcelableExtra<SummonRequest>(App.REQUEST)
         Toast.makeText(context, "Request received", Toast.LENGTH_LONG).show()
     }
 }

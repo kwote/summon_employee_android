@@ -71,6 +71,7 @@ class RegisterActivity : AppCompatActivity() {
         val lastName = lastname.text.toString()
         var patronymic : String? = patronymic_view.text.toString()
         var phone : String? = phone_view.text.toString()
+        var post : String? = post_view.text.toString()
 
         var cancel = false
         var focusView: View? = null
@@ -119,6 +120,10 @@ class RegisterActivity : AppCompatActivity() {
             cancel = true
         }
 
+        if (TextUtils.isEmpty(post)) {
+            post = null
+        }
+
         if (cancel) {
             // There was an error; don't attempt register and focus the first
             // form field with an error.
@@ -128,7 +133,7 @@ class RegisterActivity : AppCompatActivity() {
             // perform the user register attempt.
             showProgress(true)
             val service = app.getService<PeopleService>()
-            val addPerson = AddPerson(firstName, lastName, patronymic, email, phone, password, 1, false)
+            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, 1, false)
             val call = service.addPerson(addPerson)
 
             call.enqueue(object : Callback<Person> {
