@@ -10,7 +10,8 @@ import java.util.*
 @Parcelize
 data class SummonRequest(val id: Int?, private val callerId: Int, val targetId: Int,
                          private val requestTime: String, private val responseTime: String?,
-                         private val enabled: Boolean? = null) : Parcelable {
+                         private val status: Int = 0,
+                         private val enabled: Boolean = false) : Parcelable {
     fun caller(): String {
         return callerId.toString()
     }

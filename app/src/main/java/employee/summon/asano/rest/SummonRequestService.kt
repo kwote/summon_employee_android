@@ -30,7 +30,7 @@ interface SummonRequestService {
     @DELETE("summonrequests/{id}")
     fun deleteRequest(@Path("id") requestId: Int?): Call<ResponseBody>
 
-    @GET("summonrequests")
+    @GET("summonrequests/findOne")
     fun getSummonRequest(
             @Query("filter[where][callerId]") callerId: Int,
             @Query("filter[where][targetId]") targetId: Int,

@@ -22,7 +22,7 @@
         <TextView android:layout_width="wrap_content"
             android:id="@+id/summon_time"
             android:layout_height="wrap_content"
-            android:text="@{request.summoned().toLocaleString()}"
+            android:text="@{request.requested().toLocaleString()}"
             app:layout_constraintTop_toBottomOf="@id/caller_id"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>

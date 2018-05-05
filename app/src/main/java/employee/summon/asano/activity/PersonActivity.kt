@@ -39,7 +39,7 @@ class PersonActivity : Activity() {
 
         summon_employee.setOnClickListener({ _ ->
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
-            val addRequest = SummonRequest(null, app.accessToken?.userId!!, person!!.id, now, null, null)
+            val addRequest = SummonRequest(null, app.accessToken?.userId!!, person!!.id, now, null)
             val service = app.getService<SummonRequestService>()
             val call = service.addSummonRequest(addRequest)
 
