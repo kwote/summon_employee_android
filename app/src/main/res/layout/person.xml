@@ -38,7 +38,7 @@
             android:id="@+id/online"
             android:layout_width="@dimen/indicator_size"
             android:layout_height="@dimen/indicator_size"
-            android:src="@{person.online ? @drawable/person_online : @drawable/person_offline}"
+            android:src="@{@drawable/person_online}"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"

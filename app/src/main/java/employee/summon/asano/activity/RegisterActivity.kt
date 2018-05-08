@@ -15,6 +15,7 @@ import android.widget.TextView
 
 import employee.summon.asano.App
 import employee.summon.asano.R
+import employee.summon.asano.getStringTimeStampWithDate
 import employee.summon.asano.model.AddPerson
 import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
@@ -22,6 +23,7 @@ import kotlinx.android.synthetic.main.activity_register.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 import java.util.regex.Pattern
 
 /**
@@ -133,7 +135,8 @@ class RegisterActivity : AppCompatActivity() {
             // perform the user register attempt.
             showProgress(true)
             val service = app.getService<PeopleService>()
-            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, 1, false)
+            val now = Calendar.getInstance().time.getStringTimeStampWithDate()
+            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, 1, now)
             val call = service.addPerson(addPerson)
 
             call.enqueue(object : Callback<Person> {
