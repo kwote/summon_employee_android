@@ -42,7 +42,11 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".activity.SummonActivity"/>
+        <activity android:name=".activity.SummonActivity" />
+
+        <service
+            android:name=".RequestListenerService"
+            android:exported="false"></service>
     </application>
 
 </manifest>
