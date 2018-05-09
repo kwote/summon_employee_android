@@ -12,8 +12,8 @@ interface PeopleService {
     @GET("people")
     fun listPeople(@Query("departmentId") departmentId: Int?): Call<List<Person>>
 
-    @GET("people")
-    fun getPerson(@Path("id") personId: Int?, @Header("Authorization") accessToken: String): Call<Person>
+    @GET("people/{id}")
+    fun getPerson(@Path("id") personId: Int?): Call<Person>
 
     @POST("people")
     fun addPerson(@Body person: AddPerson): Call<Person>

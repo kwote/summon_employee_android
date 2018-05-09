@@ -1,108 +1,119 @@
 package employee.summon.asano
 
 import android.app.IntentService
+import android.app.Notification
 import android.content.Intent
 import android.content.Context
 import android.app.PendingIntent
+import android.app.Service
+import android.os.Build
+import android.os.IBinder
+import android.util.Log
+import com.google.gson.Gson
+import com.tylerjroach.eventsource.EventSource
+import com.tylerjroach.eventsource.EventSourceHandler
+import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
+import employee.summon.asano.activity.RequestReceiver
+import employee.summon.asano.model.AccessToken
+import employee.summon.asano.model.SummonRequestMessage
 
 
-// TODO: Rename actions, choose action names that describe tasks that this
-// IntentService can perform, e.g. ACTION_FETCH_NEW_ITEMS
-private const val ACTION_FOO = "employee.summon.asano.action.FOO"
-private const val ACTION_BAZ = "employee.summon.asano.action.BAZ"
+private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
 
-// TODO: Rename parameters
-private const val EXTRA_PARAM1 = "employee.summon.asano.extra.PARAM1"
-private const val EXTRA_PARAM2 = "employee.summon.asano.extra.PARAM2"
+class RequestListenerService : Service() {
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
+    }
 
-/**
- * An [IntentService] subclass for handling asynchronous task requests in
- * a service on a separate handler thread.
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
- */
-class RequestListenerService : IntentService("RequestListenerService") {
+    private var accessToken : AccessToken? = null
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        /*val notificationIntent = Intent(this, MainActivity::class.java)
+        accessToken = intent?.getParcelableExtra(App.ACCESS_TOKEN)
+        eventSource = EventSource.Builder(getString(R.string.base_url) + App.REQUEST_URL_SUFFIX)
+                .eventHandler(requestHandler)
+                .build()
+        eventSource!!.connect()
+        return START_STICKY
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
-        val notification = Notification.Builder(this, CHANNEL_DEFAULT_IMPORTANCE)
+        val notification = Notification.Builder(this)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_message))
-                .setSmallIcon(R.drawable.icon)
+                .setSmallIcon(R.drawable.person_icon)
                 .setContentIntent(pendingIntent)
                 .setTicker(getText(R.string.ticker_text))
                 .build()
 
-        startForeground(ONGOING_NOTIFICATION_ID, notification)*/
-        return super.onStartCommand(intent, flags, startId)
+        startForeground(ONGOING_NOTIFICATION_ID, notification)
     }
 
-    override fun onHandleIntent(intent: Intent?) {
-        when (intent?.action) {
-            ACTION_FOO -> {
-                val param1 = intent.getStringExtra(EXTRA_PARAM1)
-                val param2 = intent.getStringExtra(EXTRA_PARAM2)
-                handleActionFoo(param1, param2)
+    override fun onDestroy() {
+        if (eventSource != null) {
+            eventSource!!.close()
+        }
+        requestHandler = null
+        super.onDestroy()
+    }
+
+    private var requestHandler: RequestHandler? = RequestHandler()
+
+    private var eventSource: EventSource? = null
+
+    inner class RequestHandler : EventSourceHandler {
+        override fun onConnect() {
+            Log.v("SSE connected", "True")
+        }
+
+        override fun onComment(comment: String?) {
+            Log.v("SSE Comment", comment)
+        }
+
+        override fun onMessage(event: String?, message: MessageEvent) {
+            Log.v("SSE Message", event)
+            Log.v("SSE Message: ", message.data)
+            val request = Gson().fromJson<SummonRequestMessage>(message.data, SummonRequestMessage::class.java)
+            if (request.data.targetId == accessToken?.userId) {
+                val intent = Intent(App.REQUEST_RECEIVED)
+                intent.setClass(this@RequestListenerService, RequestReceiver::class.java)
+                intent.putExtra(App.REQUEST, request.data)
+                sendBroadcast(intent)
             }
-            ACTION_BAZ -> {
-                val param1 = intent.getStringExtra(EXTRA_PARAM1)
-                val param2 = intent.getStringExtra(EXTRA_PARAM2)
-                handleActionBaz(param1, param2)
-            }
+        }
+
+        override fun onClosed(willReconnect: Boolean) {
+            Log.v("SSE Closed", "reconnect? $willReconnect")
+        }
+
+        override fun onError(t: Throwable?) {
+            Log.e("SSE Error", "Failed", t)
         }
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private fun handleActionFoo(param1: String, param2: String) {
-        TODO("Handle action Foo")
-    }
-
-    /**
-     * Handle action Baz in the provided background thread with the provided
-     * parameters.
-     */
-    private fun handleActionBaz(param1: String, param2: String) {
-        TODO("Handle action Baz")
-    }
-
     companion object {
+        const val ONGOING_NOTIFICATION_ID = 1
         /**
          * Starts this service to perform action Foo with the given parameters. If
          * the service is already performing a task this action will be queued.
          *
          * @see IntentService
          */
-        // TODO: Customize helper method
         @JvmStatic
-        fun startActionFoo(context: Context, param1: String, param2: String) {
+        fun startActionListenRequest(context: Context, accessToken: AccessToken) {
             val intent = Intent(context, RequestListenerService::class.java).apply {
-                action = ACTION_FOO
-                putExtra(EXTRA_PARAM1, param1)
-                putExtra(EXTRA_PARAM2, param2)
+                action = ACTION_LISTEN_REQUEST
             }
-            context.startService(intent)
-        }
-
-        /**
-         * Starts this service to perform action Baz with the given parameters. If
-         * the service is already performing a task this action will be queued.
-         *
-         * @see IntentService
-         */
-        // TODO: Customize helper method
-        @JvmStatic
-        fun startActionBaz(context: Context, param1: String, param2: String) {
-            val intent = Intent(context, RequestListenerService::class.java).apply {
-                action = ACTION_BAZ
-                putExtra(EXTRA_PARAM1, param1)
-                putExtra(EXTRA_PARAM2, param2)
+            intent.putExtra(App.ACCESS_TOKEN, accessToken)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
             }
-            context.startService(intent)
         }
     }
 }
