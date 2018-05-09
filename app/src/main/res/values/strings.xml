@@ -40,4 +40,7 @@
     <string name="action_accept">Accept</string>
     <string name="action_reject">Reject</string>
     <string name="prompt_post">Post</string>
+    <string name="notification_title">Connection</string>
+    <string name="notification_message">Connection is active</string>
+    <string name="ticker_text">Connection</string>
 </resources>

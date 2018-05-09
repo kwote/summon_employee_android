@@ -15,6 +15,7 @@ import android.widget.TextView
 
 import employee.summon.asano.App
 import employee.summon.asano.R
+import employee.summon.asano.RequestListenerService
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.LoginCredentials
 import employee.summon.asano.model.Person
@@ -119,10 +120,9 @@ class LoginActivity : AppCompatActivity() {
                         password_login.requestFocus()
                     } else {
                         val accessToken = response.body()
-                        app.accessToken = accessToken
-                        app.startEventSource()
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
+                        intent.putExtra(App.ACCESS_TOKEN, accessToken)
                         startActivity(intent)
                         finish()
                     }

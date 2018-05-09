@@ -7,9 +7,10 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import employee.summon.asano.R
 import employee.summon.asano.databinding.SummonRequestBinding
-import employee.summon.asano.model.SummonRequest
+import employee.summon.asano.viewmodel.SummonRequestVM
 
-class SummonRequestAdapter(private val requests: List<SummonRequest>, private val inflater: LayoutInflater) : BaseAdapter() {
+class SummonRequestAdapter(private val requests: List<SummonRequestVM?>,
+                           private val inflater: LayoutInflater) : BaseAdapter() {
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         var binding : SummonRequestBinding? = null
@@ -24,7 +25,7 @@ class SummonRequestAdapter(private val requests: List<SummonRequest>, private va
         return binding.root
     }
 
-    override fun getItem(position: Int): Any {
+    override fun getItem(position: Int): Any? {
         return requests[position]
     }
 

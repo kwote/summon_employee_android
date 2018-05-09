@@ -8,10 +8,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Parcelize
-data class SummonRequest(val id: Int?, private val callerId: Int, val targetId: Int,
-                         private val requestTime: String, private val responseTime: String?,
-                         private val status: Int = 0,
-                         private val enabled: Boolean = false) : Parcelable {
+data class SummonRequest(val id: Int?, val callerId: Int, val targetId: Int,
+                         val requestTime: String, val responseTime: String?,
+                         val status: Int = 0,
+                         val enabled: Boolean = false) : Parcelable {
     fun caller(): String {
         return callerId.toString()
     }
