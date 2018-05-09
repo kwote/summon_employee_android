@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">Вызов сотрудника</string>
+
+    <!-- Strings related to login -->
+    <string name="prompt_email">E-mail</string>
+    <string name="prompt_password">Пароль</string>
+    <string name="prompt_department">Отдел</string>
+    <string name="action_sign_in">Войти</string>
+    <string name="action_register">Регистрация</string>
+    <string name="action_sign_in_short">Войти</string>
+    <string name="error_invalid_email">Вы ввели некорректный E-mail</string>
+    <string name="error_invalid_phone">Некорректный телефон</string>
+    <string name="error_invalid_password">Слишком короткий пароль???</string>
+    <string name="error_incorrect_password">Слишком длинный пароль</string>
+    <string name="error_field_required">Обязательное поле для заполнения</string>
+    <string name="title_employees">Сотрудники</string>
+    <string name="title_incoming_requests">Входящий</string>
+    <string name="title_outgoing_requests">Исходящий</string>
+    <string name="base_url">http://192.168.1.204:3000/api/</string>
+    <string name="base_url_test">https://summon-employee.herokuapp.com/api/</string>
+    <string name="title_access_token">Access token</string>
+    <string name="prompt_firstname">Имя</string>
+    <string name="prompt_lastname">Фамилия</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+    <string name="refresh">Перегрузить</string>
+    <string name="title_activity_person">Вызвать сотрудника</string>
+    <string name="clear_tokens">Clear Tokens</string>
+    <string name="logout">Выйти</string>
+    <string name="prompt_patronymic">Отчество (необязательно)</string>
+    <string name="prompt_phone">Телефон</string>
+    <string name="prompt_password_confirm">Повторите пароль</string>
+    <string name="online">Доступен</string>
+    <string name="employee_photo">Фотография</string>
+    <string name="action_summon">Вызвать</string>
+    <string name="call">Позвонить по тел. номеру</string>
+    <string name="summon_failed">Вызово неудался</string>
+    <string name="title_activity_summon">SummonActivity</string>
+    <string name="clear">Clear</string>
+    <string name="cancel_successful">Request canceled</string>
+    <string name="action_accept">Принять</string>
+    <string name="action_reject">Откзаться</string>
+    <string name="prompt_post">Должность</string>
+</resources>
