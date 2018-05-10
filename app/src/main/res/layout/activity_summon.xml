@@ -2,8 +2,10 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data class="SummonActivityBinding">
-        <variable name="caller" type="employee.summon.asano.model.Person"/>
+        <variable name="incoming" type="boolean"/>
+        <variable name="person" type="employee.summon.asano.model.Person"/>
         <variable name="request" type="employee.summon.asano.model.SummonRequest"/>
+        <import type="android.view.View" alias="v"/>
     </data>
 <android.support.constraint.ConstraintLayout
     android:layout_width="match_parent"
@@ -25,7 +27,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/fullname"
         android:layout_height="wrap_content"
-        android:text='@{caller.fullName}'
+        android:text='@{person.fullName}'
         android:textStyle="bold"
         android:textSize="@dimen/name_size"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -34,28 +36,52 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/email"
         android:layout_height="wrap_content"
-        android:text="@{caller.email}"
+        android:text="@{person.email}"
         app:layout_constraintTop_toBottomOf="@id/fullname"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <TextView android:layout_width="wrap_content"
         android:id="@id/phone_view"
         android:layout_height="wrap_content"
-        android:text="@{caller.phone}"
+        android:text="@{person.phone}"
         app:layout_constraintTop_toBottomOf="@id/fullname"
         app:layout_constraintRight_toRightOf="parent"/>
     <Button
         android:id="@+id/accept_request"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_accept"
+        android:enabled="@{request.pending}"
+        android:visibility="@{incoming ? v.VISIBLE : v.GONE}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <Button
         android:id="@+id/reject_request"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_reject"
-        android:enabled="false"
+        android:enabled="@{request.pending}"
+        android:visibility="@{incoming ? v.VISIBLE : v.GONE}"
+        app:layout_constraintTop_toBottomOf="@id/email"
+        app:layout_constraintRight_toRightOf="parent"/>
+    <Button
+        android:id="@+id/cancel_request"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:text="@android:string/cancel"
+        android:enabled="@{request.pending}"
+        android:visibility="@{incoming ? v.GONE : v.VISIBLE}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"/>
 

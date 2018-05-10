@@ -28,6 +28,7 @@ class RequestReceiver : BroadcastReceiver() {
                 if (response.isSuccessful) {
                     val caller = response.body()
                     val launchIntent = Intent(context, SummonActivity::class.java)
+                    launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
                     launchIntent.putExtra(App.REQUEST, request)
                     launchIntent.putExtra(PersonActivity.PERSON, caller)
                     context.startActivity(launchIntent)

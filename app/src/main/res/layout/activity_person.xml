@@ -52,6 +52,10 @@
             android:id="@+id/summon_employee"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:text="@string/action_summon"
             app:layout_constraintTop_toBottomOf="@id/email"
             app:layout_constraintLeft_toLeftOf="parent"/>
@@ -61,6 +65,10 @@
             android:layout_height="wrap_content"
             android:text="@string/call"
             android:enabled="@{person.phone != null}"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             app:layout_constraintTop_toBottomOf="@id/email"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
@@ -69,6 +77,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@android:string/cancel"
+            android:layout_marginLeft="@dimen/activity_horizontal_margin"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"
+            android:layout_marginRight="@dimen/activity_horizontal_margin"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
             android:enabled="false"
             app:layout_constraintTop_toBottomOf="@id/email"
             app:layout_constraintRight_toRightOf="parent"/>

@@ -20,7 +20,7 @@ class SummonRequestAdapter(private val requests: List<SummonRequestVM?>,
         if (binding == null) {
             binding = DataBindingUtil.inflate(inflater, R.layout.summon_request, parent, false)
         }
-        binding!!.request = requests[position]
+        binding!!.requestVM = requests[position]
         binding.executePendingBindings()
         return binding.root
     }

@@ -18,9 +18,6 @@ import employee.summon.asano.activity.RequestReceiver
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.SummonRequestMessage
 
-
-private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
-
 class RequestListenerService : Service() {
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -29,12 +26,24 @@ class RequestListenerService : Service() {
     private var accessToken : AccessToken? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        accessToken = intent?.getParcelableExtra(App.ACCESS_TOKEN)
-        eventSource = EventSource.Builder(getString(R.string.base_url) + App.REQUEST_URL_SUFFIX)
-                .eventHandler(requestHandler)
-                .build()
-        eventSource!!.connect()
-        return START_STICKY
+        if (intent != null) {
+            when (intent.action) {
+                ACTION_LISTEN_REQUEST -> {
+                    if (intent.hasExtra(App.ACCESS_TOKEN)) {
+                        accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
+                    }
+                    eventSource = EventSource.Builder(getString(R.string.base_url) + App.REQUEST_URL_SUFFIX)
+                            .eventHandler(requestHandler)
+                            .build()
+                    eventSource!!.connect()
+                }
+                ACTION_CLOSE_CONNECTION -> {
+                    closeConnection()
+                    stopSelf()
+                }
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onCreate() {
@@ -54,11 +63,16 @@ class RequestListenerService : Service() {
     }
 
     override fun onDestroy() {
+        closeConnection()
+        super.onDestroy()
+    }
+
+    private fun closeConnection() {
         if (eventSource != null) {
             eventSource!!.close()
         }
         requestHandler = null
-        super.onDestroy()
+        stopForeground(true)
     }
 
     private var requestHandler: RequestHandler? = RequestHandler()
@@ -78,7 +92,7 @@ class RequestListenerService : Service() {
             Log.v("SSE Message", event)
             Log.v("SSE Message: ", message.data)
             val request = Gson().fromJson<SummonRequestMessage>(message.data, SummonRequestMessage::class.java)
-            if (request.data.targetId == accessToken?.userId) {
+            if (request.data.targetId == accessToken?.userId && request.type == "create") {
                 val intent = Intent(App.REQUEST_RECEIVED)
                 intent.setClass(this@RequestListenerService, RequestReceiver::class.java)
                 intent.putExtra(App.REQUEST, request.data)
@@ -88,6 +102,7 @@ class RequestListenerService : Service() {
 
         override fun onClosed(willReconnect: Boolean) {
             Log.v("SSE Closed", "reconnect? $willReconnect")
+            //stopSelf()
         }
 
         override fun onError(t: Throwable?) {
@@ -96,6 +111,8 @@ class RequestListenerService : Service() {
     }
 
     companion object {
+        private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
+        private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         const val ONGOING_NOTIFICATION_ID = 1
         /**
          * Starts this service to perform action Foo with the given parameters. If
@@ -109,6 +126,23 @@ class RequestListenerService : Service() {
                 action = ACTION_LISTEN_REQUEST
             }
             intent.putExtra(App.ACCESS_TOKEN, accessToken)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+        /**
+         * Starts this service to perform action Foo with the given parameters. If
+         * the service is already performing a task this action will be queued.
+         *
+         * @see IntentService
+         */
+        @JvmStatic
+        fun cancelActionListenRequest(context: Context) {
+            val intent = Intent(context, RequestListenerService::class.java).apply {
+                action = ACTION_CLOSE_CONNECTION
+            }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {

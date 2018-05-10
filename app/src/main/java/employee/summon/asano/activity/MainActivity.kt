@@ -67,8 +67,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val mOnSummonRequestClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
-        val request = parent.adapter.getItem(position) as SummonRequest
-        acceptRequest(request)
+        val requestVM = parent.adapter.getItem(position) as SummonRequestVM
+        val launchIntent = Intent(this, SummonActivity::class.java)
+        launchIntent.putExtra(SummonActivity.IS_INCOMING, requestVM.incoming)
+        launchIntent.putExtra(App.REQUEST, requestVM.request)
+        launchIntent.putExtra(PersonActivity.PERSON, requestVM.person)
+        startActivity(launchIntent)
+        //acceptRequest(request)
     }
 
     private fun summonPerson(person: Person) {
@@ -158,6 +163,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
                 saveAccessToken(null)
+                RequestListenerService.cancelActionListenRequest(this@MainActivity)
                 login()
             }
         })
@@ -202,9 +208,7 @@ class MainActivity : AppCompatActivity() {
                     val pResponse = pCall.execute()
                     if (pResponse.isSuccessful) {
                         val person = pResponse.body()
-                        val requestVM = SummonRequestVM(request.id, request.requestTime,
-                                request.responseTime, incoming, person.fullName,
-                                request.status, request.enabled)
+                        val requestVM = SummonRequestVM(request, person, incoming)
                         requestVMs[index] = requestVM
                     }
                 }
