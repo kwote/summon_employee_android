@@ -5,6 +5,7 @@ import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import employee.summon.asano.App
 import employee.summon.asano.R
@@ -72,20 +73,27 @@ class PersonActivity : Activity() {
             })
         })
 
-        val service = app.getService<SummonRequestService>()
-        val call = service.getSummonRequest(app.accessToken?.userId!!, person!!.id, true)
-        call.enqueue(object : Callback<SummonRequest> {
-            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
-                Toast.makeText(this@PersonActivity, R.string.error_unknown, Toast.LENGTH_SHORT).show()
-            }
-
-            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                if (response.isSuccessful) {
-                    pendingRequest = response.body()
-                    cancel_summon_request.isEnabled = true
+        if (app.accessToken?.userId != person?.id) {
+            val service = app.getService<SummonRequestService>()
+            val call = service.getSummonRequest(app.accessToken?.userId!!, person!!.id, true)
+            call.enqueue(object : Callback<SummonRequest> {
+                override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
+                    Toast.makeText(this@PersonActivity, R.string.error_unknown, Toast.LENGTH_SHORT).show()
                 }
-            }
-        })
+
+                override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
+                    if (response.isSuccessful) {
+                        pendingRequest = response.body()
+                        summon_employee.isEnabled = false
+                        cancel_summon_request.isEnabled = true
+                    }
+                }
+            })
+        } else {
+            call_employee.visibility = View.GONE
+            summon_employee.visibility = View.GONE
+            cancel_summon_request.visibility = View.GONE
+        }
     }
 
     companion object {

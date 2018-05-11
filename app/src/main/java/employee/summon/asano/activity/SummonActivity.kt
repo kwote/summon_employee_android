@@ -1,8 +1,8 @@
 package employee.summon.asano.activity
 
 import android.databinding.DataBindingUtil
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
 import employee.summon.asano.App
@@ -44,6 +44,9 @@ class SummonActivity : AppCompatActivity() {
         reject_request.setOnClickListener({
             rejectRequest(this.request!!)
         })
+        cancel_request.setOnClickListener({
+            cancelRequest(this.request!!)
+        })
     }
 
     private fun acceptRequest(request: SummonRequest) {
@@ -70,6 +73,20 @@ class SummonActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
                 Toast.makeText(this@SummonActivity, "Request rejected", Toast.LENGTH_LONG).show()
+            }
+        })
+    }
+
+    private fun cancelRequest(request: SummonRequest) {
+        val service = app.getService<SummonRequestService>()
+        val call = service.cancelRequest(request.id)
+        call.enqueue(object : Callback<SummonRequest> {
+            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
+                Log.e(SummonActivity::class.java.simpleName, "Cancel request failed", t)
+            }
+
+            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
+                Toast.makeText(this@SummonActivity, "Request canceled", Toast.LENGTH_LONG).show()
             }
         })
     }

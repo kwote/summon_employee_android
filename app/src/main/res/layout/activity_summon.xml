@@ -37,12 +37,16 @@
         android:id="@id/email"
         android:layout_height="wrap_content"
         android:text="@{person.email}"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <TextView android:layout_width="wrap_content"
         android:id="@id/phone_view"
         android:layout_height="wrap_content"
         android:text="@{person.phone}"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
         app:layout_constraintRight_toRightOf="parent"/>
     <Button
@@ -75,15 +79,12 @@
         android:id="@+id/cancel_request"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@android:string/cancel"
-        android:enabled="@{request.pending}"
-        android:visibility="@{incoming ? v.GONE : v.VISIBLE}"
+        android:enabled="@{request.enabled}"
+        android:visibility="@{!incoming ? v.VISIBLE : v.GONE}"
         app:layout_constraintTop_toBottomOf="@id/email"
-        app:layout_constraintRight_toRightOf="parent"/>
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
 
 </android.support.constraint.ConstraintLayout>
 </layout>
