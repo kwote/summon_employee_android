@@ -2,10 +2,10 @@ package employee.summon.asano
 
 import android.app.IntentService
 import android.app.Notification
-import android.content.Intent
-import android.content.Context
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -15,6 +15,7 @@ import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
 import employee.summon.asano.activity.RequestReceiver
+import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.SummonRequestMessage
 
@@ -92,17 +93,23 @@ class RequestListenerService : Service() {
             Log.v("SSE Message", event)
             Log.v("SSE Message: ", message.data)
             val request = Gson().fromJson<SummonRequestMessage>(message.data, SummonRequestMessage::class.java)
-            if (request.data.targetId == accessToken?.userId && request.type == "create") {
+            if (request.data.targetId == accessToken?.userId) {
                 val intent = Intent(App.REQUEST_RECEIVED)
                 intent.setClass(this@RequestListenerService, RequestReceiver::class.java)
                 intent.putExtra(App.REQUEST, request.data)
+                intent.putExtra(SummonActivity.IS_INCOMING, true)
+                sendBroadcast(intent)
+            } else if (request.data.callerId == accessToken?.userId) {
+                val intent = Intent(App.REQUEST_RECEIVED)
+                intent.setClass(this@RequestListenerService, RequestReceiver::class.java)
+                intent.putExtra(App.REQUEST, request.data)
+                intent.putExtra(SummonActivity.IS_INCOMING, false)
                 sendBroadcast(intent)
             }
         }
 
         override fun onClosed(willReconnect: Boolean) {
             Log.v("SSE Closed", "reconnect? $willReconnect")
-            //stopSelf()
         }
 
         override fun onError(t: Throwable?) {

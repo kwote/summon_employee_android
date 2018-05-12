@@ -10,8 +10,8 @@
     <string name="action_sign_in_short">Войти</string>
     <string name="error_invalid_email">Вы ввели некорректный E-mail</string>
     <string name="error_invalid_phone">Некорректный телефон</string>
-    <string name="error_invalid_password">Слишком короткий пароль???</string>
-    <string name="error_incorrect_password">Слишком длинный пароль</string>
+    <string name="error_invalid_password">Слишком короткий пароль</string>
+    <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_field_required">Обязательное поле для заполнения</string>
     <string name="title_employees">Сотрудники</string>
     <string name="title_incoming_requests">Входящий</string>
@@ -31,11 +31,11 @@
     <string name="employee_photo">Фотография</string>
     <string name="action_summon">Вызвать</string>
     <string name="call">Позвонить по тел. номеру</string>
-    <string name="summon_failed">Вызово неудался</string>
+    <string name="summon_failed">Вызов не удался</string>
     <string name="title_activity_summon">SummonActivity</string>
     <string name="clear">Clear</string>
     <string name="cancel_successful">Request canceled</string>
     <string name="action_accept">Принять</string>
-    <string name="action_reject">Откзаться</string>
+    <string name="action_reject">Отказаться</string>
     <string name="prompt_post">Должность</string>
 </resources>

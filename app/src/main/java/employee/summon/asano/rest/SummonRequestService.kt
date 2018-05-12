@@ -1,5 +1,6 @@
 package employee.summon.asano.rest
 
+import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequest
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -34,5 +35,6 @@ interface SummonRequestService {
     fun getSummonRequest(
             @Query("filter[where][callerId]") callerId: Int,
             @Query("filter[where][targetId]") targetId: Int,
-            @Query("filter[where][enabled]") enabled: Boolean): Call<SummonRequest>
+            @Query("filter[where][enabled]") enabled: Boolean,
+            @Query("filter[where][status]") status: Int = RequestStatus.Pending.code): Call<SummonRequest>
 }

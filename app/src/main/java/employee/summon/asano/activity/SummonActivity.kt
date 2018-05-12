@@ -21,12 +21,15 @@ import retrofit2.Response
 class SummonActivity : AppCompatActivity() {
     companion object {
         const val IS_INCOMING = "is_incoming"
+        const val IS_TEMPORARY = "is_temporary"
     }
 
     private val app: App
         get() = application as App
     private var request: SummonRequest? = null
     private var person: Person? = null
+
+    private var isTemporary: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,12 +40,15 @@ class SummonActivity : AppCompatActivity() {
         person = intent.getParcelableExtra(PERSON)
         binding.person = person
         val isIncoming = intent.getBooleanExtra(IS_INCOMING, true)
+        isTemporary = intent.getBooleanExtra(IS_INCOMING, false)
         binding.incoming = isIncoming
         accept_request.setOnClickListener({
             acceptRequest(this.request!!)
+            if (isTemporary) finish()
         })
         reject_request.setOnClickListener({
             rejectRequest(this.request!!)
+            if (isTemporary) finish()
         })
         cancel_request.setOnClickListener({
             cancelRequest(this.request!!)
@@ -58,7 +64,7 @@ class SummonActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@SummonActivity, "Request accepted", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SummonActivity, R.string.request_accepted, Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -72,7 +78,7 @@ class SummonActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@SummonActivity, "Request rejected", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SummonActivity, R.string.request_rejected, Toast.LENGTH_LONG).show()
             }
         })
     }
@@ -86,7 +92,7 @@ class SummonActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@SummonActivity, "Request canceled", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@SummonActivity, R.string.request_canceled, Toast.LENGTH_LONG).show()
             }
         })
     }

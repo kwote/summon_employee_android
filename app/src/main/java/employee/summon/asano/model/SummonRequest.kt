@@ -14,7 +14,7 @@ enum class RequestStatus(val code: Int) {
 @Parcelize
 data class SummonRequest(val id: Int?, val callerId: Int, val targetId: Int,
                          private val requestTime: String, private val responseTime: String?,
-                         val status: Int = 0, val enabled: Boolean = true) : Parcelable {
+                         val status: Int = 0, val enabled: Boolean = false) : Parcelable {
     val requested: Date?
         get() = requestTime.getDateWithServerTimeStamp()
 

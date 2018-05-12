@@ -16,14 +16,14 @@
         <TextView android:layout_width="wrap_content"
             android:id="@+id/summon_time"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.requested.toLocaleString()}"
+            android:text="@{requestVM.requested}"
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/response_time"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.responded.toLocaleString()}"
+            android:text="@{requestVM.responded}"
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>

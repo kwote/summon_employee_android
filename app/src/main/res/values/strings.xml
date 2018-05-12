@@ -43,4 +43,7 @@
     <string name="notification_title">Connection</string>
     <string name="notification_message">Connection is active</string>
     <string name="ticker_text">Connection</string>
+    <string name="request_accepted">Request accepted</string>
+    <string name="request_rejected">Request rejected</string>
+    <string name="request_canceled">Request canceled</string>
 </resources>
