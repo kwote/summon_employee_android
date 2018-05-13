@@ -14,15 +14,13 @@
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_field_required">Обязательное поле для заполнения</string>
     <string name="title_employees">Сотрудники</string>
-    <string name="title_incoming_requests">Входящий</string>
-    <string name="title_outgoing_requests">Исходящий</string>
-    <string name="title_access_token">Access token</string>
+    <string name="title_incoming_requests">Входящие</string>
+    <string name="title_outgoing_requests">Исходящие</string>
     <string name="prompt_firstname">Имя</string>
     <string name="prompt_lastname">Фамилия</string>
     <string name="error_unknown">Неизвестная ошибка</string>
     <string name="refresh">Перегрузить</string>
     <string name="title_activity_person">Вызвать сотрудника</string>
-    <string name="clear_tokens">Clear Tokens</string>
     <string name="logout">Выйти</string>
     <string name="prompt_patronymic">Отчество (необязательно)</string>
     <string name="prompt_phone">Телефон</string>
@@ -32,7 +30,6 @@
     <string name="action_summon">Вызвать</string>
     <string name="call">Позвонить по тел. номеру</string>
     <string name="summon_failed">Вызов не удался</string>
-    <string name="title_activity_summon">SummonActivity</string>
     <string name="clear">Clear</string>
     <string name="cancel_successful">Request canceled</string>
     <string name="action_accept">Принять</string>

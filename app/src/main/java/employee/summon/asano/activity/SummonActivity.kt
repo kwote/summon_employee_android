@@ -1,10 +1,15 @@
 package employee.summon.asano.activity
 
+import android.app.KeyguardManager
+import android.content.Context
 import android.databinding.DataBindingUtil
+import android.media.RingtoneManager
+import android.os.Build
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import android.widget.Toast
+import android.view.WindowManager
 import employee.summon.asano.App
 import employee.summon.asano.App.Companion.REQUEST
 import employee.summon.asano.R
@@ -17,6 +22,7 @@ import kotlinx.android.synthetic.main.activity_summon.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+
 
 class SummonActivity : AppCompatActivity() {
     companion object {
@@ -34,6 +40,16 @@ class SummonActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = DataBindingUtil.setContentView<SummonActivityBinding>(this, R.layout.activity_summon)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            keyguardManager.requestDismissKeyguard(this, null)
+        } else {
+            this.window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
+                    WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                    WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
+        }
 
         request = intent.getParcelableExtra(REQUEST)
         binding.request = request
@@ -41,6 +57,11 @@ class SummonActivity : AppCompatActivity() {
         binding.person = person
         val isIncoming = intent.getBooleanExtra(IS_INCOMING, true)
         isTemporary = intent.getBooleanExtra(IS_INCOMING, false)
+        if (isTemporary) {
+            val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val r = RingtoneManager.getRingtone(applicationContext, notification)
+            r.play()
+        }
         binding.incoming = isIncoming
         accept_request.setOnClickListener({
             acceptRequest(this.request!!)
@@ -64,7 +85,7 @@ class SummonActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@SummonActivity, R.string.request_accepted, Toast.LENGTH_LONG).show()
+                Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
             }
         })
     }
@@ -78,7 +99,7 @@ class SummonActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@SummonActivity, R.string.request_rejected, Toast.LENGTH_LONG).show()
+                Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
             }
         })
     }
@@ -92,7 +113,7 @@ class SummonActivity : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@SummonActivity, R.string.request_canceled, Toast.LENGTH_LONG).show()
+                Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
             }
         })
     }

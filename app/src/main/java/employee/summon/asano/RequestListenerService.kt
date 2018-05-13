@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.PowerManager
 import android.util.Log
 import com.google.gson.Gson
 import com.tylerjroach.eventsource.EventSource
@@ -19,12 +20,15 @@ import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.SummonRequestMessage
 
+
 class RequestListenerService : Service() {
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
     private var accessToken : AccessToken? = null
+
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent != null) {
@@ -43,6 +47,10 @@ class RequestListenerService : Service() {
                     stopSelf()
                 }
             }
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    WAKELOCK_TAG)
+            wakeLock?.acquire(3600*8*1000)
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -65,6 +73,7 @@ class RequestListenerService : Service() {
 
     override fun onDestroy() {
         closeConnection()
+        wakeLock?.release()
         super.onDestroy()
     }
 
@@ -120,6 +129,7 @@ class RequestListenerService : Service() {
     companion object {
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
+        private const val WAKELOCK_TAG = "SumEmpWakelockTag"
         const val ONGOING_NOTIFICATION_ID = 1
         /**
          * Starts this service to perform action Foo with the given parameters. If
