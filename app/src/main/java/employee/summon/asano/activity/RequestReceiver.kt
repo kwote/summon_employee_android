@@ -34,6 +34,7 @@ class RequestReceiver : BroadcastReceiver() {
                         if (response.isSuccessful) {
                             val caller = response.body()
                             val launchIntent = Intent(context, SummonActivity::class.java)
+                            launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
                             launchIntent.putExtra(SummonActivity.IS_TEMPORARY, true)
                             launchIntent.putExtra(App.REQUEST, request)

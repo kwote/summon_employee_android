@@ -5,21 +5,19 @@ import android.content.Intent
 import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
 import android.widget.AdapterView
-import android.widget.Toast
 import com.google.gson.Gson
-
 import employee.summon.asano.App
-import employee.summon.asano.adapter.PersonAdapter
 import employee.summon.asano.R
 import employee.summon.asano.RequestListenerService
+import employee.summon.asano.adapter.PersonAdapter
 import employee.summon.asano.adapter.SummonRequestAdapter
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
-import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.rest.SummonRequestService
 import employee.summon.asano.viewmodel.SummonRequestVM
@@ -28,6 +26,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
@@ -73,7 +72,6 @@ class MainActivity : AppCompatActivity() {
         launchIntent.putExtra(App.REQUEST, requestVM.request)
         launchIntent.putExtra(PersonActivity.PERSON, requestVM.person)
         startActivity(launchIntent)
-        //acceptRequest(request)
     }
 
     private fun summonPerson(person: Person) {
@@ -198,53 +196,30 @@ class MainActivity : AppCompatActivity() {
                 requestService.listIncomingRequests(app.accessToken?.userId)
             else
                 requestService.listOutgoingRequests(app.accessToken?.userId)
-            val response = call.execute()
-            if (response.isSuccessful) {
-                val peopleService = app.getService<PeopleService>()
-                val requests = response.body()
-                val requestVMs : MutableList<SummonRequestVM?> = MutableList(requests.size, { null })
-                for ((index, request) in requests.withIndex()) {
-                    val pCall = peopleService.getPerson(if (incoming) request.callerId else request.targetId)
-                    val pResponse = pCall.execute()
-                    if (pResponse.isSuccessful) {
-                        val person = pResponse.body()
-                        val requestVM = SummonRequestVM(request, person, incoming)
-                        requestVMs[index] = requestVM
+            try {
+                val response = call.execute()
+                if (response.isSuccessful) {
+                    val peopleService = app.getService<PeopleService>()
+                    val requests = response.body()
+                    val requestVMs: MutableList<SummonRequestVM?> = MutableList(requests.size, { null })
+                    for ((index, request) in requests.withIndex()) {
+                        val pCall = peopleService.getPerson(if (incoming) request.callerId else request.targetId)
+                        val pResponse = pCall.execute()
+                        if (pResponse.isSuccessful) {
+                            val person = pResponse.body()
+                            val requestVM = SummonRequestVM(request, person, incoming)
+                            requestVMs[index] = requestVM
+                        }
+                    }
+                    runOnUiThread {
+                        list_view.adapter = SummonRequestAdapter(requestVMs, layoutInflater)
+                        list_view.onItemClickListener = mOnSummonRequestClickListener
                     }
                 }
-                runOnUiThread {
-                    list_view.adapter = SummonRequestAdapter(requestVMs, layoutInflater)
-                    list_view.onItemClickListener = mOnSummonRequestClickListener
-                }
+            } catch (e: IOException) {
+                Snackbar.make(list_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
             }
         }
-    }
-
-    private fun acceptRequest(request: SummonRequest) {
-        val service = app.getService<SummonRequestService>()
-        val call = service.acceptRequest(request.id)
-        call.enqueue(object : Callback<SummonRequest> {
-            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
-                Log.e("MainActivity", "Accept request failed", t)
-            }
-
-            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                Toast.makeText(this@MainActivity, "Request accepted", Toast.LENGTH_LONG).show()
-            }
-        })
-    }
-
-    private fun deleteRequest(request: SummonRequest) {
-        val service = app.getService<SummonRequestService>()
-        val call = service.deleteRequest(request.id)
-        call.enqueue(object : Callback<ResponseBody> {
-            override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
-                Log.e("MainActivity", "Delete request failed", t)
-            }
-
-            override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
-            }
-        })
     }
 }
 
