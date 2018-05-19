@@ -30,28 +30,36 @@ import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
+    private enum class SelectedItem {
+        People,
+        IncomingRequests,
+        OutgoingRequests
+    }
+
+    private var selectedItem: SelectedItem = SelectedItem.People
+
     private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_employees -> {
-                reloadPeople()
+                selectedItem = SelectedItem.People
+                reload()
 
-                refresh.setOnClickListener { reloadPeople() }
                 clear.text = getString(R.string.clear_tokens)
                 clear.setOnClickListener { clearTokens() }
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_incoming -> {
-                reloadRequests(true)
+                selectedItem = SelectedItem.IncomingRequests
+                reload()
 
-                refresh.setOnClickListener { reloadRequests(true) }
                 clear.text = getString(R.string.clear)
                 clear.setOnClickListener { }
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_outgoing -> {
-                reloadRequests(false)
+                selectedItem = SelectedItem.OutgoingRequests
+                reload()
 
-                refresh.setOnClickListener { reloadRequests(false) }
                 clear.text = getString(R.string.clear)
                 clear.setOnClickListener { }
                 return@OnNavigationItemSelectedListener true
@@ -100,15 +108,29 @@ class MainActivity : AppCompatActivity() {
         accessToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
         saveAccessToken(accessToken)
 
-        reloadPeople()
+        reload()
 
-        refresh.setOnClickListener { reloadPeople() }
         clear.text = getString(R.string.clear_tokens)
         clear.setOnClickListener { clearTokens() }
 
         logout.setOnClickListener { performLogout() }
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+
+        refresher.setOnRefreshListener {
+            reload()
+        }
+    }
+
+    private fun reload() {
+        if (!refresher.isRefreshing) {
+            refresher.isRefreshing = true
+        }
+        when (selectedItem) {
+            SelectedItem.People -> reloadPeople()
+            SelectedItem.IncomingRequests -> reloadRequests(true)
+            SelectedItem.OutgoingRequests -> reloadRequests(false)
+        }
     }
 
     private fun saveAccessToken(accessToken: AccessToken?) {
@@ -176,15 +198,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun reloadPeople() {
         val service = app.getService<PeopleService>()
-        val call = service.listPeople(1)
+        val call = service.listPeople(app.accessToken?.user?.departmentId)
         call.enqueue(object : Callback<List<Person>> {
             override fun onResponse(call: Call<List<Person>>, response: Response<List<Person>>) {
+                refresher.isRefreshing = false
                 val people = response.body()
                 list_view.adapter = PersonAdapter(people, layoutInflater)
                 list_view.onItemClickListener = mOnPersonClickListener
             }
 
             override fun onFailure(call: Call<List<Person>>, t: Throwable) {
+                refresher.isRefreshing = false
             }
         })
     }
@@ -212,12 +236,16 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     runOnUiThread {
+                        refresher.isRefreshing = false
                         list_view.adapter = SummonRequestAdapter(requestVMs, layoutInflater)
                         list_view.onItemClickListener = mOnSummonRequestClickListener
                     }
                 }
             } catch (e: IOException) {
                 Snackbar.make(list_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
+                runOnUiThread {
+                    refresher.isRefreshing = false
+                }
             }
         }
     }
