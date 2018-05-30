@@ -171,8 +171,9 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun isPhoneValid(phone: String?): Boolean {
-        if (phone != null)
+        if (phone != null) {
             return validatePhone(phone)
+        }
         return false
     }
 

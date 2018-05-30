@@ -7,6 +7,7 @@ import android.content.Intent
 
 import android.os.Build
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
@@ -129,6 +130,7 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<AccessToken>, t: Throwable) {
+                    Snackbar.make(email_login, R.string.connection_failed, Snackbar.LENGTH_LONG).show();
                     showProgress(false)
                 }
             })
@@ -172,7 +174,7 @@ class LoginActivity : AppCompatActivity() {
                 .alpha((if (show) 1 else 0).toFloat())
                 .setListener(object : AnimatorListenerAdapter() {
                     override fun onAnimationEnd(animation: Animator) {
-                        login_progress.visibility = if (show) View.GONE else View.VISIBLE
+                        login_progress.visibility = if (show) View.VISIBLE else View.GONE
                     }
                 })
     }
