@@ -20,6 +20,7 @@ import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.rest.SummonRequestService
+import employee.summon.asano.rest.UtilService
 import employee.summon.asano.viewmodel.SummonRequestVM
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.ResponseBody
@@ -27,6 +28,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
+import java.util.function.Consumer
 
 
 class MainActivity : AppCompatActivity() {
@@ -98,17 +100,28 @@ class MainActivity : AppCompatActivity() {
         val accessToken : AccessToken?
         if (intent.hasExtra(App.ACCESS_TOKEN)) {
             accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
+            accessToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
+            saveAccessToken(accessToken)
+
+            reload()
         } else {
             accessToken = readAccessToken()
             if (accessToken == null) {
                 login()
                 return
             }
+            showProgress(true)
+            ping(accessToken, {r ->
+                if (r.body()) {
+                    showProgress(false)
+                    reload()
+                } else {
+                    login()
+                }
+            }, {
+                login()
+            })
         }
-        accessToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
-        saveAccessToken(accessToken)
-
-        reload()
 
         clear.text = getString(R.string.clear_tokens)
         clear.setOnClickListener { clearTokens() }
@@ -120,6 +133,10 @@ class MainActivity : AppCompatActivity() {
         refresher.setOnRefreshListener {
             reload()
         }
+    }
+
+    private fun showProgress(progress: Boolean) {
+
     }
 
     private fun reload() {
@@ -152,11 +169,7 @@ class MainActivity : AppCompatActivity() {
             return null
         }
 
-        val accessToken = Gson().fromJson<AccessToken>(accessTokenStr, AccessToken::class.java)
-        if (accessToken.expired()) {
-            return null
-        }
-        return accessToken
+        return Gson().fromJson(accessTokenStr, AccessToken::class.java)
     }
 
     private fun clearTokens() {
@@ -194,6 +207,21 @@ class MainActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
         startActivity(intent)
         finish()
+    }
+
+    private fun ping(accessToken: AccessToken?, onSuccess: (r: Response<Boolean>)->Unit,
+                     onFail: (t: Throwable)->Unit) {
+        val service = app.getService<UtilService>()
+        val call = service.ping(accessToken!!.id)
+        call.enqueue(object : Callback<Boolean> {
+            override fun onFailure(call: Call<Boolean>, t: Throwable) {
+                onFail(t)
+            }
+
+            override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
+                onSuccess(response)
+            }
+        })
     }
 
     private fun reloadPeople() {
