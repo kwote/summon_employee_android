@@ -50,9 +50,9 @@ class RequestReceiver : BroadcastReceiver() {
                 Toast.makeText(context, R.string.request_canceled, Toast.LENGTH_LONG).show()
             }
         } else {
-            if (request.status == RequestStatus.Accepted.code) {
+            if (request.state == RequestStatus.Accepted.code) {
                 Toast.makeText(context, R.string.request_accepted, Toast.LENGTH_LONG).show()
-            } else if (request.status == RequestStatus.Rejected.code) {
+            } else if (request.state == RequestStatus.Rejected.code) {
                 Toast.makeText(context, R.string.request_rejected, Toast.LENGTH_LONG).show()
             }
         }
