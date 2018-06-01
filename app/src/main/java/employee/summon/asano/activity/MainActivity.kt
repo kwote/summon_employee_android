@@ -9,6 +9,8 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.AdapterView
 import com.google.gson.Gson
 import employee.summon.asano.App
@@ -28,7 +30,6 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
-import java.util.function.Consumer
 
 
 class MainActivity : AppCompatActivity() {
@@ -46,24 +47,18 @@ class MainActivity : AppCompatActivity() {
                 selectedItem = SelectedItem.People
                 reload()
 
-                clear.text = getString(R.string.clear_tokens)
-                clear.setOnClickListener { clearTokens() }
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_incoming -> {
                 selectedItem = SelectedItem.IncomingRequests
                 reload()
 
-                clear.text = getString(R.string.clear)
-                clear.setOnClickListener { }
                 return@OnNavigationItemSelectedListener true
             }
             R.id.navigation_outgoing -> {
                 selectedItem = SelectedItem.OutgoingRequests
                 reload()
 
-                clear.text = getString(R.string.clear)
-                clear.setOnClickListener { }
                 return@OnNavigationItemSelectedListener true
             }
         }
@@ -113,6 +108,7 @@ class MainActivity : AppCompatActivity() {
             showProgress(true)
             ping(accessToken, {r ->
                 if (r.body()) {
+                    app.accessToken = accessToken
                     showProgress(false)
                     reload()
                 } else {
@@ -123,16 +119,23 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
-        clear.text = getString(R.string.clear_tokens)
-        clear.setOnClickListener { clearTokens() }
-
-        logout.setOnClickListener { performLogout() }
-
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
         refresher.setOnRefreshListener {
             reload()
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            R.id.logout -> performLogout()
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun showProgress(progress: Boolean) {
