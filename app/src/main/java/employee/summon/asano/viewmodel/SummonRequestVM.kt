@@ -13,7 +13,9 @@ data class SummonRequestVM(val request: SummonRequest, val person: Person, val i
     val requested: CharSequence
         get() = DateUtils.getRelativeTimeSpanString(request.requested!!.time, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
     val responded: CharSequence?
-        get() = request.responded?.time?.let { DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS) }
+        get() = request.responded?.time?.let {
+            DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+        }
     val accepted: Boolean
         get() = request.state == RequestStatus.Accepted.code
     val rejected: Boolean

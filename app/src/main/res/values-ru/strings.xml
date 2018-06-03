@@ -36,4 +36,5 @@
     <string name="action_reject">Отказаться</string>
     <string name="prompt_post">Должность</string>
     <string name="connection_failed">Connection failed</string>
+    <string name="error_password_dont_match">Passwords don\'t match</string>
 </resources>

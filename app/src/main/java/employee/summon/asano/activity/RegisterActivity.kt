@@ -69,61 +69,59 @@ class RegisterActivity : AppCompatActivity() {
         // Store values at the time of the attempt.
         val email = email_register.text.toString()
         val password = password_register.text.toString()
+        val passwordConfirm = password_confirm.text.toString()
         val firstName = firstname.text.toString()
         val lastName = lastname.text.toString()
         var patronymic : String? = patronymic_view.text.toString()
         var phone : String? = phone_view.text.toString()
-        var post : String? = post_view.text.toString()
 
         var cancel = false
         var focusView: View? = null
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            password_register.error = getString(R.string.error_invalid_password)
-            focusView = password_register
-            cancel = true
-        }
-
-        // Check for a valid first name, if the user entered one.
-        if (TextUtils.isEmpty(firstName)) {
+        if (!TextUtils.isEmpty(password)) {
+            if (!isPasswordValid(password)) {
+                password_register.error = getString(R.string.error_invalid_password)
+                focusView = password_register
+                cancel = true
+            } else if (password != passwordConfirm) {
+                password_confirm.error = getString(R.string.error_password_dont_match)
+                focusView = password_confirm
+                cancel = true
+            }
+        } else if (TextUtils.isEmpty(firstName)) {
+            // Check for a valid first name, if the user entered one.
             firstname.error = getString(R.string.error_field_required)
             focusView = firstname
             cancel = true
-        }
-
-        // Check for a valid last name, if the user entered one.
-        if (TextUtils.isEmpty(lastName)) {
+        } else if (TextUtils.isEmpty(lastName)) {
+            // Check for a valid last name, if the user entered one.
             lastname.error = getString(R.string.error_field_required)
             focusView = lastname
             cancel = true
-        }
+        } else {
+            if (TextUtils.isEmpty(patronymic)) {
+                patronymic = null
+            }
 
-        if (TextUtils.isEmpty(patronymic)) {
-            patronymic = null
-        }
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
-            email_register.error = getString(R.string.error_field_required)
-            focusView = email_register
-            cancel = true
-        } else if (!isEmailValid(email)) {
-            email_register.error = getString(R.string.error_invalid_email)
-            focusView = email_register
-            cancel = true
-        }
-
-        if (TextUtils.isEmpty(phone)) {
-            phone = null
-        } else if (!isPhoneValid(phone)) {
-            phone_view.error = getString(R.string.error_invalid_phone)
-            focusView = phone_view
-            cancel = true
-        }
-
-        if (TextUtils.isEmpty(post)) {
-            post = null
+            // Check for a valid email address.
+            if (TextUtils.isEmpty(email)) {
+                email_register.error = getString(R.string.error_field_required)
+                focusView = email_register
+                cancel = true
+            } else if (!isEmailValid(email)) {
+                email_register.error = getString(R.string.error_invalid_email)
+                focusView = email_register
+                cancel = true
+            } else {
+                if (TextUtils.isEmpty(phone)) {
+                    phone = null
+                } else if (!isPhoneValid(phone)) {
+                    phone_view.error = getString(R.string.error_invalid_phone)
+                    focusView = phone_view
+                    cancel = true
+                }
+            }
         }
 
         if (cancel) {
@@ -136,7 +134,7 @@ class RegisterActivity : AppCompatActivity() {
             showProgress(true)
             val service = app.getService<PeopleService>()
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
-            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, 1, now)
+            val addPerson = AddPerson(firstName, lastName, patronymic, email, phone, password, now)
             val call = service.addPerson(addPerson)
 
             call.enqueue(object : Callback<Person> {

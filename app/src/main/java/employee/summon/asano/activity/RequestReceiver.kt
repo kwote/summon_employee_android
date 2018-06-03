@@ -23,8 +23,9 @@ class RequestReceiver : BroadcastReceiver() {
         if (isIncoming) {
             if (request.enabled && request.pending) {
                 val callerId = request.callerId
-                val service = (context.applicationContext as App).getService<PeopleService>()
-                val call = service.getPerson(callerId)
+                val app = context.applicationContext as App
+                val service = app.getService<PeopleService>()
+                val call = service.getPerson(callerId, app.accessToken!!.id)
                 call.enqueue(object : Callback<Person> {
                     override fun onFailure(call: Call<Person>, t: Throwable) {
                         Log.e(RequestReceiver::class.java.simpleName, "request error", t)

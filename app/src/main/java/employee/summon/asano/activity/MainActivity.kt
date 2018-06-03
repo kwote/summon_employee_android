@@ -229,17 +229,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun reloadPeople() {
         val service = app.getService<PeopleService>()
-        val call = service.listPeople(app.accessToken?.user?.departmentId)
+        val call = service.listPeople(app.accessToken!!.id)
         call.enqueue(object : Callback<List<Person>> {
             override fun onResponse(call: Call<List<Person>>, response: Response<List<Person>>) {
                 refresher.isRefreshing = false
-                val people = response.body()
-                list_view.adapter = PersonAdapter(people, layoutInflater)
-                list_view.onItemClickListener = mOnPersonClickListener
+                if (response.isSuccessful) {
+                    val people = response.body()
+                    list_view.adapter = PersonAdapter(people, layoutInflater)
+                    list_view.onItemClickListener = mOnPersonClickListener
+                } else {
+                    Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
+                }
             }
 
             override fun onFailure(call: Call<List<Person>>, t: Throwable) {
                 refresher.isRefreshing = false
+                Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
             }
         })
     }
@@ -258,7 +263,8 @@ class MainActivity : AppCompatActivity() {
                     val requests = response.body()
                     val requestVMs: MutableList<SummonRequestVM?> = MutableList(requests.size, { null })
                     for ((index, request) in requests.withIndex()) {
-                        val pCall = peopleService.getPerson(if (incoming) request.callerId else request.targetId)
+                        val pCall = peopleService.getPerson(if (incoming) request.callerId else request.targetId,
+                                app.accessToken!!.id)
                         val pResponse = pCall.execute()
                         if (pResponse.isSuccessful) {
                             val person = pResponse.body()

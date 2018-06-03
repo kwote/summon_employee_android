@@ -10,10 +10,10 @@ import retrofit2.http.*
 
 interface PeopleService {
     @GET("people")
-    fun listPeople(@Query("departmentId") departmentId: Int?): Call<List<Person>>
+    fun listPeople(@Header("Authorization") accessToken: String): Call<List<Person>>
 
     @GET("people/{id}")
-    fun getPerson(@Path("id") personId: Int?): Call<Person>
+    fun getPerson(@Path("id") personId: Int?, @Header("Authorization") accessToken: String): Call<Person>
 
     @POST("people")
     fun addPerson(@Body person: AddPerson): Call<Person>

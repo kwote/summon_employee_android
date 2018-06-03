@@ -16,7 +16,7 @@
     <string name="title_employees">Employees</string>
     <string name="title_incoming_requests">Incoming</string>
     <string name="title_outgoing_requests">Outgoing</string>
-    <string name="base_url">http://192.168.1.12:3000/api/</string>
+    <string name="base_url">http://10.0.2.2:3000/api/</string>
     <string name="base_url_test">https://summon-employee.herokuapp.com/api/</string>
     <string name="title_access_token">Access token</string>
     <string name="prompt_firstname">First Name</string>
@@ -46,4 +46,7 @@
     <string name="request_accepted">Request accepted</string>
     <string name="request_rejected">Request rejected</string>
     <string name="request_canceled">Request canceled</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="error_password_dont_match">Passwords don\'t match</string>
+    <string name="reload_failed">Reload failed</string>
 </resources>
