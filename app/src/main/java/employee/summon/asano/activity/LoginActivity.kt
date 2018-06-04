@@ -115,10 +115,7 @@ class LoginActivity : AppCompatActivity() {
                 override fun onResponse(call: Call<AccessToken>, response: Response<AccessToken>) {
                     if (!response.isSuccessful) {
                         showProgress(false)
-                        val error = response.errorBody()
-
-                        password_login.error = getString(R.string.error_incorrect_password)
-                        password_login.requestFocus()
+                        Snackbar.make(email_login, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
                     } else {
                         val accessToken = response.body()
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
@@ -130,7 +127,7 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<AccessToken>, t: Throwable) {
-                    Snackbar.make(email_login, R.string.connection_failed, Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(email_login, R.string.connection_failed, Snackbar.LENGTH_LONG).show()
                     showProgress(false)
                 }
             })

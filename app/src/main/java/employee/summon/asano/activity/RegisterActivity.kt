@@ -74,6 +74,7 @@ class RegisterActivity : AppCompatActivity() {
         val lastName = lastname.text.toString()
         var patronymic : String? = patronymic_view.text.toString()
         var phone : String? = phone_view.text.toString()
+        var post : String? = post_view.text.toString()
 
         var cancel = false
         var focusView: View? = null
@@ -102,6 +103,10 @@ class RegisterActivity : AppCompatActivity() {
         } else {
             if (TextUtils.isEmpty(patronymic)) {
                 patronymic = null
+            }
+
+            if (TextUtils.isEmpty(post)) {
+                post = null
             }
 
             // Check for a valid email address.
@@ -134,7 +139,7 @@ class RegisterActivity : AppCompatActivity() {
             showProgress(true)
             val service = app.getService<PeopleService>()
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
-            val addPerson = AddPerson(firstName, lastName, patronymic, email, phone, password, now)
+            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, now)
             val call = service.addPerson(addPerson)
 
             call.enqueue(object : Callback<Person> {

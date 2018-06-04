@@ -25,7 +25,7 @@ class RequestReceiver : BroadcastReceiver() {
                 val callerId = request.callerId
                 val app = context.applicationContext as App
                 val service = app.getService<PeopleService>()
-                val call = service.getPerson(callerId, app.accessToken!!.id)
+                val call = service.getPerson(callerId, app.accessToken.id)
                 call.enqueue(object : Callback<Person> {
                     override fun onFailure(call: Call<Person>, t: Throwable) {
                         Log.e(RequestReceiver::class.java.simpleName, "request error", t)
@@ -37,7 +37,7 @@ class RequestReceiver : BroadcastReceiver() {
                             val launchIntent = Intent(context, SummonActivity::class.java)
                             launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                             launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
-                            launchIntent.putExtra(SummonActivity.IS_TEMPORARY, true)
+                            launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
                             launchIntent.putExtra(App.REQUEST, request)
                             launchIntent.putExtra(PersonActivity.PERSON, caller)
                             context.startActivity(launchIntent)

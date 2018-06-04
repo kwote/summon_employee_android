@@ -37,7 +37,7 @@ class RequestListenerService : Service() {
                     if (intent.hasExtra(App.ACCESS_TOKEN)) {
                         accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
                     }
-                    eventSource = EventSource.Builder(getString(R.string.base_url) + App.REQUEST_URL_SUFFIX)
+                    eventSource = EventSource.Builder(getString(R.string.base_url) + REQUEST_URL_SUFFIX)
                             .eventHandler(requestHandler)
                             .build()
                     eventSource!!.connect()
@@ -127,6 +127,7 @@ class RequestListenerService : Service() {
     }
 
     companion object {
+        private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream/"
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         private const val WAKELOCK_TAG = "SumEmpWakelockTag"

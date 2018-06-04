@@ -15,6 +15,7 @@ import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.SummonRequestService
 import kotlinx.android.synthetic.main.activity_person.*
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -38,24 +39,16 @@ class PersonActivity : Activity() {
             startActivity(intent)
         })
 
-        if (app.accessToken?.userId != person?.id) {
-            val service = app.getService<SummonRequestService>()
-            val call = service.getSummonRequest(app.accessToken?.userId!!, person!!.id, true)
-            call.enqueue(object : Callback<SummonRequest> {
-                override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
+        if (app.accessToken.userId != person?.id) {
+            getLastOutgoingSummonRequests(app.accessToken.userId, person!!.id, 3, {r->
+                if (r.isEmpty()) {
                     makeSummonButton()
-                    Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
+                } else {
+                    makeCancelButton()
                 }
-
-                override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
-                    if (response.isSuccessful) {
-                        pendingRequest = response.body()
-
-                        makeCancelButton()
-                    } else {
-                        makeSummonButton()
-                    }
-                }
+            }, {_, _ ->
+                makeSummonButton()
+                Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
             })
         } else {
             call_fab.visibility = View.GONE
@@ -63,13 +56,35 @@ class PersonActivity : Activity() {
         }
     }
 
+    private fun getLastOutgoingSummonRequests(callerId: Int, targetId: Int, count: Int,
+                                              onSuccess: (r: List<SummonRequest>)->Unit,
+                                              onFail: (r: ResponseBody?, t: Throwable?)->Unit) {
+        val service = app.getService<SummonRequestService>()
+
+        val call = service.listOutgoingRequests(callerId, targetId, app.accessToken.id)
+        call.enqueue(object : Callback<List<SummonRequest>> {
+            override fun onFailure(call: Call<List<SummonRequest>>, t: Throwable) {
+                onFail(null, t)
+            }
+
+            override fun onResponse(call: Call<List<SummonRequest>>, response: Response<List<SummonRequest>>) {
+                if (response.isSuccessful) {
+                    onSuccess(response.body())
+                } else {
+                    onFail(response.errorBody(), null)
+                }
+            }
+        })
+    }
+
     private fun makeSummonButton() {
         summon_fab.setImageResource(R.drawable.horn)
         summon_fab.setOnClickListener({ _ ->
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
-            val addRequest = SummonRequest(null, app.accessToken?.userId!!, person!!.id, now)
+            val accessToken = app.accessToken
+            val addRequest = SummonRequest(null, accessToken.userId, person!!.id, now)
             val service = app.getService<SummonRequestService>()
-            val call = service.addSummonRequest(addRequest)
+            val call = service.addSummonRequest(addRequest, accessToken.id)
 
             call.enqueue(object : Callback<SummonRequest> {
                 override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
@@ -89,8 +104,8 @@ class PersonActivity : Activity() {
         summon_fab.setImageResource(R.drawable.cancel)
         summon_fab.setOnClickListener({ _ ->
             val service = app.getService<SummonRequestService>()
-            val cancelCall = service.cancelRequest(pendingRequest!!.id)
-            cancelCall.enqueue(object : Callback<SummonRequest> {
+            val cancelCall = pendingRequest?.id?.let { it -> service.cancelRequest(it, app.accessToken.id) }
+            cancelCall?.enqueue(object : Callback<SummonRequest> {
                 override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
                     Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
                 }

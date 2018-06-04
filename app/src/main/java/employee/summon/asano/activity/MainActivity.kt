@@ -106,15 +106,11 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             showProgress(true)
-            ping(accessToken, {r ->
-                if (r.body()) {
-                    app.accessToken = accessToken
-                    showProgress(false)
-                    reload()
-                } else {
-                    login()
-                }
-            }, {
+            ping(accessToken, {
+                app.accessToken = accessToken
+                showProgress(false)
+                reload()
+            }, {_, _->
                 login()
             })
         }
@@ -153,15 +149,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveAccessToken(accessToken: AccessToken?) {
+    private fun saveAccessToken(accessToken: AccessToken) {
         app.accessToken = accessToken
         val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        if (accessToken == null) {
-            sharedPref.remove(App.ACCESS_TOKEN)
-        } else {
-            val accessTokenStr = Gson().toJson(accessToken)
-            sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
-        }
+        val accessTokenStr = Gson().toJson(accessToken)
+        sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
         sharedPref.apply()
     }
 
@@ -175,30 +167,14 @@ class MainActivity : AppCompatActivity() {
         return Gson().fromJson(accessTokenStr, AccessToken::class.java)
     }
 
-    private fun clearTokens() {
-        val service = app.getService<PeopleService>()
-        val accessToken = app.accessToken!!
-        val call = service.clearTokens(accessToken.userId, app.accessToken!!.id)
-        call.enqueue(object : Callback<ResponseBody> {
-            override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
-                Log.e("MainActivity", "Clear tokens failed", t)
-            }
-
-            override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
-                login()
-            }
-        })
-    }
-
     private fun performLogout() {
         val service = app.getService<PeopleService>()
-        val call = service.logout(app.accessToken!!.id)
+        val call = service.logout(app.accessToken.id)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
             }
 
             override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
-                saveAccessToken(null)
                 RequestListenerService.cancelActionListenRequest(this@MainActivity)
                 login()
             }
@@ -212,24 +188,28 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun ping(accessToken: AccessToken?, onSuccess: (r: Response<Boolean>)->Unit,
-                     onFail: (t: Throwable)->Unit) {
+    private fun ping(accessToken: AccessToken?, onSuccess: (r: Boolean)->Unit,
+                     onFail: (r: Response<Boolean>?, t: Throwable?)->Unit) {
         val service = app.getService<UtilService>()
         val call = service.ping(accessToken!!.id)
         call.enqueue(object : Callback<Boolean> {
             override fun onFailure(call: Call<Boolean>, t: Throwable) {
-                onFail(t)
+                onFail(null, t)
             }
 
             override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
-                onSuccess(response)
+                if (response.isSuccessful) {
+                    onSuccess(response.body())
+                } else {
+                    onFail(response, null)
+                }
             }
         })
     }
 
     private fun reloadPeople() {
         val service = app.getService<PeopleService>()
-        val call = service.listPeople(app.accessToken!!.id)
+        val call = service.listPeople(app.accessToken.id)
         call.enqueue(object : Callback<List<Person>> {
             override fun onResponse(call: Call<List<Person>>, response: Response<List<Person>>) {
                 refresher.isRefreshing = false
@@ -252,19 +232,25 @@ class MainActivity : AppCompatActivity() {
     private fun reloadRequests(incoming: Boolean) {
         AsyncTask.execute {
             val requestService = app.getService<SummonRequestService>()
+            val accessToken = app.accessToken
             val call = if (incoming)
-                requestService.listIncomingRequests(app.accessToken?.userId)
+                requestService.listIncomingRequests(accessToken.userId, accessToken.id)
             else
-                requestService.listOutgoingRequests(app.accessToken?.userId)
+                requestService.listOutgoingRequests(accessToken.userId, accessToken.id)
             try {
                 val response = call.execute()
+                val success : Boolean
+                val requestVMs: MutableList<SummonRequestVM?>
                 if (response.isSuccessful) {
+                    success = true
                     val peopleService = app.getService<PeopleService>()
                     val requests = response.body()
-                    val requestVMs: MutableList<SummonRequestVM?> = MutableList(requests.size, { null })
+                    requestVMs = MutableList(requests.size, { null })
                     for ((index, request) in requests.withIndex()) {
-                        val pCall = peopleService.getPerson(if (incoming) request.callerId else request.targetId,
-                                app.accessToken!!.id)
+                        val pCall = peopleService.getPerson(
+                                if (incoming) request.callerId else request.targetId,
+                                accessToken.id
+                        )
                         val pResponse = pCall.execute()
                         if (pResponse.isSuccessful) {
                             val person = pResponse.body()
@@ -272,11 +258,16 @@ class MainActivity : AppCompatActivity() {
                             requestVMs[index] = requestVM
                         }
                     }
-                    runOnUiThread {
-                        refresher.isRefreshing = false
-                        list_view.adapter = SummonRequestAdapter(requestVMs, layoutInflater)
-                        list_view.onItemClickListener = mOnSummonRequestClickListener
-                    }
+                } else {
+                    success = false
+                    requestVMs = MutableList(0, { null })
+                }
+                runOnUiThread {
+                    refresher.isRefreshing = false
+                    list_view.adapter = SummonRequestAdapter(requestVMs, layoutInflater)
+                    list_view.onItemClickListener = mOnSummonRequestClickListener
+                    if (!success)
+                        Snackbar.make(list_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
                 }
             } catch (e: IOException) {
                 Snackbar.make(list_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()

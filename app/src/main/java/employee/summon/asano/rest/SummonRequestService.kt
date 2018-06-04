@@ -8,33 +8,41 @@ import retrofit2.http.*
 
 interface SummonRequestService {
     @GET("summonrequests")
-    fun listOutgoingRequests(@Query("filter[where][callerId]") callerId: Int?): Call<List<SummonRequest>>
+    fun listOutgoingRequests(
+            @Query("filter[where][callerId]") callerId: Int,
+            @Header("Authorization") accessToken: String
+    ): Call<List<SummonRequest>>
 
     @GET("summonrequests")
-    fun listIncomingRequests(@Query("filter[where][targetId]") targetId: Int?): Call<List<SummonRequest>>
+    fun listIncomingRequests(@Query("filter[where][targetId]") targetId: Int,
+                             @Header("Authorization") accessToken: String): Call<List<SummonRequest>>
 
     @GET("summonrequests")
-    fun getSummonRequest(@Path("id") requestId: Int?): Call<SummonRequest>
+    fun getSummonRequest(@Path("id") requestId: Int,
+                         @Header("Authorization") accessToken: String): Call<SummonRequest>
 
     @POST("summonrequests")
-    fun addSummonRequest(@Body request: SummonRequest): Call<SummonRequest>
+    fun addSummonRequest(@Body request: SummonRequest,
+                         @Header("Authorization") accessToken: String): Call<SummonRequest>
 
     @PUT("summonrequests/{id}/accept")
-    fun acceptRequest(@Path("id") requestId: Int?): Call<SummonRequest>
+    fun acceptRequest(@Path("id") requestId: Int,
+                      @Header("Authorization") accessToken: String): Call<SummonRequest>
 
     @PUT("summonrequests/{id}/reject")
-    fun rejectRequest(@Path("id") requestId: Int?): Call<SummonRequest>
+    fun rejectRequest(@Path("id") requestId: Int,
+                      @Header("Authorization") accessToken: String): Call<SummonRequest>
 
     @PUT("summonrequests/{id}/cancel")
-    fun cancelRequest(@Path("id") requestId: Int?): Call<SummonRequest>
+    fun cancelRequest(@Path("id") requestId: Int, @Header("Authorization") accessToken: String): Call<SummonRequest>
 
     @DELETE("summonrequests/{id}")
-    fun deleteRequest(@Path("id") requestId: Int?): Call<ResponseBody>
+    fun deleteRequest(@Path("id") requestId: Int, @Header("Authorization") accessToken: String): Call<ResponseBody>
 
-    @GET("summonrequests/findOne")
-    fun getSummonRequest(
+    @GET("summonrequests")
+    fun listOutgoingRequests(
             @Query("filter[where][callerId]") callerId: Int,
             @Query("filter[where][targetId]") targetId: Int,
-            @Query("filter[where][enabled]") enabled: Boolean,
-            @Query("filter[where][status]") status: Int = RequestStatus.Pending.code): Call<SummonRequest>
+            @Header("Authorization") accessToken: String
+    ): Call<List<SummonRequest>>
 }

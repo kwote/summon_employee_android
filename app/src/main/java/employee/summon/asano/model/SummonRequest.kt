@@ -17,12 +17,12 @@ data class SummonRequest(val id: Int?, val callerId: Int, val targetId: Int,
                          @field:SerializedName("requested") private val requestTime: String,
                          @field:SerializedName("responded") private val responseTime: String? = null,
                          val state: Int = 0, val enabled: Boolean = false) : Parcelable {
-    val requested: Date?
+    val requested
         get() = requestTime.getDateWithServerTimeStamp()
 
-    val responded: Date?
+    val responded
         get() = responseTime?.getDateWithServerTimeStamp()
 
-    val pending: Boolean
+    val pending
         get() = state == RequestStatus.Pending.code
 }

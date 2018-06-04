@@ -27,7 +27,7 @@ import retrofit2.Response
 class SummonActivity : AppCompatActivity() {
     companion object {
         const val IS_INCOMING = "is_incoming"
-        const val IS_TEMPORARY = "is_temporary"
+        const val IS_WAKEFUL = "is_wakeful"
     }
 
     private val app: App
@@ -35,7 +35,7 @@ class SummonActivity : AppCompatActivity() {
     private var request: SummonRequest? = null
     private var person: Person? = null
 
-    private var isTemporary: Boolean = false
+    private var isWakeful: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +46,8 @@ class SummonActivity : AppCompatActivity() {
         person = intent.getParcelableExtra(PERSON)
         binding.person = person
         val isIncoming = intent.getBooleanExtra(IS_INCOMING, true)
-        isTemporary = intent.getBooleanExtra(IS_TEMPORARY, false)
-        if (isTemporary) {
+        isWakeful = intent.getBooleanExtra(IS_WAKEFUL, false)
+        if (isWakeful) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
                 setShowWhenLocked(true)
                 setTurnScreenOn(true)
@@ -65,11 +65,11 @@ class SummonActivity : AppCompatActivity() {
         binding.incoming = isIncoming
         accept_request.setOnClickListener({
             acceptRequest(this.request!!)
-            if (isTemporary) finish()
+            if (isWakeful) finish()
         })
         reject_request.setOnClickListener({
             rejectRequest(this.request!!)
-            if (isTemporary) finish()
+            if (isWakeful) finish()
         })
         cancel_request.setOnClickListener({
             cancelRequest(this.request!!)
@@ -78,7 +78,7 @@ class SummonActivity : AppCompatActivity() {
 
     private fun acceptRequest(request: SummonRequest) {
         val service = app.getService<SummonRequestService>()
-        val call = service.acceptRequest(request.id)
+        val call = service.acceptRequest(request.id!!, app.accessToken.id)
         call.enqueue(object : Callback<SummonRequest> {
             override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
                 Log.e(SummonActivity::class.java.simpleName, "Accept request failed", t)
@@ -92,7 +92,7 @@ class SummonActivity : AppCompatActivity() {
 
     private fun rejectRequest(request: SummonRequest) {
         val service = app.getService<SummonRequestService>()
-        val call = service.rejectRequest(request.id)
+        val call = service.rejectRequest(request.id!!, app.accessToken.id)
         call.enqueue(object : Callback<SummonRequest> {
             override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
                 Log.e(SummonActivity::class.java.simpleName, "Reject request failed", t)
@@ -106,7 +106,7 @@ class SummonActivity : AppCompatActivity() {
 
     private fun cancelRequest(request: SummonRequest) {
         val service = app.getService<SummonRequestService>()
-        val call = service.cancelRequest(request.id)
+        val call = service.cancelRequest(request.id!!, app.accessToken.id)
         call.enqueue(object : Callback<SummonRequest> {
             override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
                 Log.e(SummonActivity::class.java.simpleName, "Cancel request failed", t)

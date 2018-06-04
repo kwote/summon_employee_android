@@ -9,20 +9,18 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class App : Application() {
-    var accessToken: AccessToken? = null
+    lateinit var accessToken: AccessToken
 
-    var retrofit: Retrofit? = null
+    lateinit var retrofit: Retrofit
         private set
 
     override fun onCreate() {
         super.onCreate()
 
-        if (retrofit == null) {
-            retrofit = Retrofit.Builder()
-                    .baseUrl(getString(R.string.base_url))
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-        }
+        retrofit = Retrofit.Builder()
+                .baseUrl(getString(R.string.base_url))
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
     }
 
     val services : MutableMap<String, Any> = HashMap()
@@ -31,13 +29,12 @@ class App : Application() {
         if (services.contains(T::class.java.simpleName)) {
             return services[T::class.java.simpleName] as T
         }
-        val service = retrofit!!.create<T>(T::class.java)
+        val service = retrofit.create<T>(T::class.java)
         services[T::class.java.simpleName] = service as Any
         return service
     }
 
     companion object {
-        const val REQUEST_URL_SUFFIX = "summonrequests/change-stream/"
         const val REQUEST_RECEIVED = "employee.summon.asano.REQUEST_RECEIVED"
         const val REQUEST = "request_extra"
         const val ACCESS_TOKEN = "access_token"
