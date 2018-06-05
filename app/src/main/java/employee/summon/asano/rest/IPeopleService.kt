@@ -8,7 +8,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.*
 
-interface PeopleService {
+interface IPeopleService {
     @GET("people")
     fun listPeople(@Header("Authorization") accessToken: String): Call<List<Person>>
 
@@ -23,7 +23,4 @@ interface PeopleService {
 
     @POST("people/logout")
     fun logout(@Header("Authorization") accessToken: String): Call<ResponseBody>
-
-    @DELETE("people/{id}/accessTokens")
-    fun clearTokens(@Path("id") personId: Int?, @Header("Authorization") accessToken: String): Call<ResponseBody>
 }

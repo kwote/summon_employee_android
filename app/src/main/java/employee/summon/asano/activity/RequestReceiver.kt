@@ -10,7 +10,7 @@ import employee.summon.asano.R
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequest
-import employee.summon.asano.rest.PeopleService
+import employee.summon.asano.rest.IPeopleService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -24,7 +24,7 @@ class RequestReceiver : BroadcastReceiver() {
             if (request.enabled && request.pending) {
                 val callerId = request.callerId
                 val app = context.applicationContext as App
-                val service = app.getService<PeopleService>()
+                val service = app.getService<IPeopleService>()
                 val call = service.getPerson(callerId, app.accessToken.id)
                 call.enqueue(object : Callback<Person> {
                     override fun onFailure(call: Call<Person>, t: Throwable) {

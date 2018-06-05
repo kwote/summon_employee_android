@@ -16,11 +16,9 @@ import android.widget.TextView
 
 import employee.summon.asano.App
 import employee.summon.asano.R
-import employee.summon.asano.RequestListenerService
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.LoginCredentials
-import employee.summon.asano.model.Person
-import employee.summon.asano.rest.PeopleService
+import employee.summon.asano.rest.IPeopleService
 import kotlinx.android.synthetic.main.activity_login.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -107,7 +105,7 @@ class LoginActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            val peopleService = app.retrofit!!.create<PeopleService>(PeopleService::class.java)
+            val peopleService = app.retrofit!!.create<IPeopleService>(IPeopleService::class.java)
             val credentials = LoginCredentials(emailStr, passwordStr)
             val call = peopleService.login(credentials)
 

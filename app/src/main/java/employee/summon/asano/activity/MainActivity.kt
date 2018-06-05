@@ -7,23 +7,25 @@ import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.LinearLayoutManager
 import android.text.TextUtils
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.AdapterView
 import com.google.gson.Gson
 import employee.summon.asano.App
 import employee.summon.asano.R
 import employee.summon.asano.RequestListenerService
 import employee.summon.asano.adapter.PersonAdapter
 import employee.summon.asano.adapter.SummonRequestAdapter
+import employee.summon.asano.api.PeopleService
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
-import employee.summon.asano.rest.PeopleService
+import employee.summon.asano.rest.IPeopleService
 import employee.summon.asano.rest.SummonRequestService
 import employee.summon.asano.rest.UtilService
 import employee.summon.asano.viewmodel.SummonRequestVM
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -65,13 +67,7 @@ class MainActivity : AppCompatActivity() {
         false
     }
 
-    private val mOnPersonClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
-        val person = parent.adapter.getItem(position) as Person
-        summonPerson(person)
-    }
-
-    private val mOnSummonRequestClickListener = AdapterView.OnItemClickListener { parent, _, position, _ ->
-        val requestVM = parent.adapter.getItem(position) as SummonRequestVM
+    private fun openSummonRequest(requestVM: SummonRequestVM) {
         val launchIntent = Intent(this, SummonActivity::class.java)
         launchIntent.putExtra(SummonActivity.IS_INCOMING, requestVM.incoming)
         launchIntent.putExtra(App.REQUEST, requestVM.request)
@@ -80,7 +76,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun summonPerson(person: Person) {
-        val intent = Intent(this@MainActivity, PersonActivity::class.java)
+        val intent = Intent(this, PersonActivity::class.java)
         intent.putExtra(PersonActivity.PERSON, person)
         startActivity(intent)
     }
@@ -114,6 +110,7 @@ class MainActivity : AppCompatActivity() {
                 login()
             })
         }
+        recycler_view.layoutManager = LinearLayoutManager(this)
 
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
 
@@ -168,7 +165,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun performLogout() {
-        val service = app.getService<PeopleService>()
+        val service = app.getService<IPeopleService>()
         val call = service.logout(app.accessToken.id)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
@@ -208,25 +205,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reloadPeople() {
-        val service = app.getService<PeopleService>()
-        val call = service.listPeople(app.accessToken.id)
-        call.enqueue(object : Callback<List<Person>> {
-            override fun onResponse(call: Call<List<Person>>, response: Response<List<Person>>) {
-                refresher.isRefreshing = false
-                if (response.isSuccessful) {
-                    val people = response.body()
-                    list_view.adapter = PersonAdapter(people, layoutInflater)
-                    list_view.onItemClickListener = mOnPersonClickListener
-                } else {
+        val service = PeopleService(app.getService())
+        service.listPeople(app.accessToken.id)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe( {
+                    recycler_view.adapter = PersonAdapter(it, { summonPerson(it) })
+                }, {
+                    refresher.isRefreshing = false
                     Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<List<Person>>, t: Throwable) {
-                refresher.isRefreshing = false
-                Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
-            }
-        })
+                }, {
+                    refresher.isRefreshing = false
+                })
     }
 
     private fun reloadRequests(incoming: Boolean) {
@@ -243,7 +233,7 @@ class MainActivity : AppCompatActivity() {
                 val requestVMs: MutableList<SummonRequestVM?>
                 if (response.isSuccessful) {
                     success = true
-                    val peopleService = app.getService<PeopleService>()
+                    val peopleService = app.getService<IPeopleService>()
                     val requests = response.body()
                     requestVMs = MutableList(requests.size, { null })
                     for ((index, request) in requests.withIndex()) {
@@ -264,13 +254,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 runOnUiThread {
                     refresher.isRefreshing = false
-                    list_view.adapter = SummonRequestAdapter(requestVMs, layoutInflater)
-                    list_view.onItemClickListener = mOnSummonRequestClickListener
+                    recycler_view.adapter = SummonRequestAdapter(requestVMs.filterNotNull(), { openSummonRequest(it) })
                     if (!success)
-                        Snackbar.make(list_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
                 }
             } catch (e: IOException) {
-                Snackbar.make(list_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
+                Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
                 runOnUiThread {
                     refresher.isRefreshing = false
                 }

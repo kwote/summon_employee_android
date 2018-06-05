@@ -11,13 +11,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 class App : Application() {
     lateinit var accessToken: AccessToken
 
-    lateinit var retrofit: Retrofit
-        private set
-
-    override fun onCreate() {
-        super.onCreate()
-
-        retrofit = Retrofit.Builder()
+    val retrofit: Retrofit by lazy {
+        Retrofit.Builder()
                 .baseUrl(getString(R.string.base_url))
                 .addConverterFactory(GsonConverterFactory.create())
                 .build()

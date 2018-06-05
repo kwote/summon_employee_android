@@ -1,39 +1,23 @@
 package employee.summon.asano.adapter
 
-import android.databinding.DataBindingUtil
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import employee.summon.asano.R
 import employee.summon.asano.databinding.SummonRequestBinding
 import employee.summon.asano.viewmodel.SummonRequestVM
 
-class SummonRequestAdapter(private val requests: List<SummonRequestVM?>,
-                           private val inflater: LayoutInflater) : BaseAdapter() {
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        var binding : SummonRequestBinding? = null
-        if (convertView != null) {
-            binding = DataBindingUtil.getBinding(convertView)
-        }
-        if (binding == null) {
-            binding = DataBindingUtil.inflate(inflater, R.layout.summon_request, parent, false)
-        }
-        binding!!.requestVM = requests[position]
-        binding.executePendingBindings()
-        return binding.root
+class SummonRequestAdapter(private val requests: List<SummonRequestVM>, private val click: (r: SummonRequestVM)->Unit) :
+        RecyclerView.Adapter<RequestViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RequestViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = SummonRequestBinding.inflate(inflater, parent, false)
+        return RequestViewHolder(binding, click)
     }
 
-    override fun getItem(position: Int): Any? {
-        return requests[position]
-    }
+    override fun getItemCount() = requests.size
 
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
-    override fun getCount(): Int {
-        return requests.size
+    override fun onBindViewHolder(holder: RequestViewHolder, position: Int) {
+        val request = requests[position]
+        holder.bind(request)
     }
 }

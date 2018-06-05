@@ -1,38 +1,24 @@
 package employee.summon.asano.adapter
 
 import android.databinding.DataBindingUtil
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import employee.summon.asano.R
 import employee.summon.asano.databinding.PersonBinding
 import employee.summon.asano.model.Person
 
-class PersonAdapter(private val people: List<Person>, private val inflater: LayoutInflater) : BaseAdapter() {
-
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        var binding : PersonBinding? = null
-        if (convertView != null) {
-            binding = DataBindingUtil.getBinding(convertView)
-        }
-        if (binding == null) {
-            binding = DataBindingUtil.inflate(inflater, R.layout.person, parent, false)
-        }
-        binding!!.person = people[position]
-        binding.executePendingBindings()
-        return binding.root
+class PersonAdapter(private val people: List<Person>, private val click: (p: Person)->Unit) :
+        RecyclerView.Adapter<PersonViewHolder>() {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PersonViewHolder {
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = PersonBinding.inflate(inflater, parent, false)
+        return PersonViewHolder(binding, click)
     }
 
-    override fun getItem(position: Int): Any {
-        return people[position]
-    }
+    override fun getItemCount() = people.size
 
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
-    override fun getCount(): Int {
-        return people.size
+    override fun onBindViewHolder(holder: PersonViewHolder, position: Int) {
+        val person = people[position]
+        holder.bind(person)
     }
 }

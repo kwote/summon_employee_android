@@ -18,7 +18,7 @@ import employee.summon.asano.R
 import employee.summon.asano.getStringTimeStampWithDate
 import employee.summon.asano.model.AddPerson
 import employee.summon.asano.model.Person
-import employee.summon.asano.rest.PeopleService
+import employee.summon.asano.rest.IPeopleService
 import kotlinx.android.synthetic.main.activity_register.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -137,7 +137,7 @@ class RegisterActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user register attempt.
             showProgress(true)
-            val service = app.getService<PeopleService>()
+            val service = app.getService<IPeopleService>()
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
             val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, now)
             val call = service.addPerson(addPerson)
