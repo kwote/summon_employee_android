@@ -33,15 +33,6 @@
             android:text="@{person.phone}"
             app:layout_constraintTop_toBottomOf="@id/fullname"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/online"/>
-        <ImageView
-            android:id="@+id/online"
-            android:layout_width="@dimen/indicator_size"
-            android:layout_height="@dimen/indicator_size"
-            android:src="@{@drawable/person_online}"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            android:contentDescription="@string/online" />
+            app:layout_constraintRight_toRightOf="parent"/>
     </android.support.constraint.ConstraintLayout>
 </layout>

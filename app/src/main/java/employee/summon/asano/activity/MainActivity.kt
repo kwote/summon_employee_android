@@ -16,7 +16,6 @@ import employee.summon.asano.adapter.SummonRequestAdapter
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
-import employee.summon.asano.rest.UtilService
 import employee.summon.asano.viewmodel.SummonRequestVM
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
@@ -179,7 +178,7 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun ping(accessToken: String) = app.getService<UtilService>().ping(accessToken)
+    private fun ping(accessToken: String) = app.getService<PeopleService>().ping(accessToken)
 
     private fun reloadPeople() {
         val service = app.getService<PeopleService>()

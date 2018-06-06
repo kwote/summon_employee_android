@@ -1,10 +1,7 @@
 package employee.summon.asano.model
 
 import android.os.Parcelable
-import com.squareup.moshi.Json
-import employee.summon.asano.getDateWithServerTimeStamp
 import kotlinx.android.parcel.Parcelize
-import java.util.*
 
 enum class RequestStatus(val code: Int) {
     Pending(0),
