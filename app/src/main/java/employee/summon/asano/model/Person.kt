@@ -1,14 +1,13 @@
 package employee.summon.asano.model
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
-class Person(val id: Int, @field:SerializedName("firstname") val firstName: String,
-             @field:SerializedName("lastname") val lastName: String, val patronymic: String?,
+class Person(val id: Int, val firstname: String,
+             val lastname: String, val patronymic: String?,
              val post: String?, val email: String?, val phone: String?, val lastActiveTime: String?
 ) : Parcelable {
     val fullName
-        get() = firstName + (if (patronymic != null) " $patronymic" else "") + " $lastName"
+        get() = firstname + (if (patronymic != null) " $patronymic" else "") + " $lastname"
 }

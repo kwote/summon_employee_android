@@ -2,7 +2,6 @@ package employee.summon.asano.activity
 
 import android.content.Context
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.Snackbar
@@ -11,27 +10,16 @@ import android.support.v7.widget.LinearLayoutManager
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
-import com.google.gson.Gson
-import employee.summon.asano.App
-import employee.summon.asano.R
-import employee.summon.asano.RequestListenerService
+import employee.summon.asano.*
 import employee.summon.asano.adapter.PersonAdapter
 import employee.summon.asano.adapter.SummonRequestAdapter
-import employee.summon.asano.api.PeopleService
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
-import employee.summon.asano.rest.IPeopleService
-import employee.summon.asano.rest.SummonRequestService
+import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.rest.UtilService
 import employee.summon.asano.viewmodel.SummonRequestVM
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_main.*
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import java.io.IOException
 
 
 class MainActivity : AppCompatActivity() {
@@ -67,6 +55,11 @@ class MainActivity : AppCompatActivity() {
         false
     }
 
+    override fun onDestroy() {
+        disposable.dispose()
+        super.onDestroy()
+    }
+
     private fun openSummonRequest(requestVM: SummonRequestVM) {
         val launchIntent = Intent(this, SummonActivity::class.java)
         launchIntent.putExtra(SummonActivity.IS_INCOMING, requestVM.incoming)
@@ -88,27 +81,32 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val accessToken : AccessToken?
+        val fullToken: AccessToken?
         if (intent.hasExtra(App.ACCESS_TOKEN)) {
-            accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
-            accessToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
-            saveAccessToken(accessToken)
+            fullToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
+            fullToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
+            saveAccessToken(fullToken)
 
             reload()
         } else {
-            accessToken = readAccessToken()
+            val accessToken = readAccessToken()
             if (accessToken == null) {
                 login()
                 return
             }
             showProgress(true)
-            ping(accessToken, {
-                app.accessToken = accessToken
-                showProgress(false)
-                reload()
-            }, {_, _->
+            ping(accessToken).observeOn(AndroidSchedulers.mainThread()).subscribe( {
+                if (it) {
+                    app.accessToken = accessToken
+                    reload()
+                } else {
+                    login()
+                }
+            }, {
                 login()
-            })
+            }, {
+                showProgress(false)
+            }).addTo(disposable)
         }
         recycler_view.layoutManager = LinearLayoutManager(this)
 
@@ -147,35 +145,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveAccessToken(accessToken: AccessToken) {
-        app.accessToken = accessToken
+        app.accessToken = accessToken.id
+        app.user = accessToken.user
         val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        val accessTokenStr = Gson().toJson(accessToken)
-        sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
+        sharedPref.putString(App.ACCESS_TOKEN, accessToken.id)
         sharedPref.apply()
     }
 
-    private fun readAccessToken(): AccessToken? {
+    private fun readAccessToken(): String? {
         val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        val accessTokenStr = sharedPref.getString(App.ACCESS_TOKEN, "")
-        if (TextUtils.isEmpty(accessTokenStr)) {
+        val accessToken = sharedPref.getString(App.ACCESS_TOKEN, "")
+        if (TextUtils.isEmpty(accessToken)) {
             return null
         }
 
-        return Gson().fromJson(accessTokenStr, AccessToken::class.java)
+        return accessToken
     }
 
-    private fun performLogout() {
-        val service = app.getService<IPeopleService>()
-        val call = service.logout(app.accessToken.id)
-        call.enqueue(object : Callback<ResponseBody> {
-            override fun onFailure(call: Call<ResponseBody>?, t: Throwable?) {
-            }
+    private val disposable = AndroidDisposable()
 
-            override fun onResponse(call: Call<ResponseBody>?, response: Response<ResponseBody>?) {
-                RequestListenerService.cancelActionListenRequest(this@MainActivity)
-                login()
-            }
-        })
+    private fun performLogout() {
+        val service = app.getService<PeopleService>()
+        service.logout(app.accessToken).subscribe {
+            RequestListenerService.cancelActionListenRequest(this@MainActivity)
+            login()
+        }.addTo(disposable)
     }
 
     private fun login() {
@@ -185,31 +179,13 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun ping(accessToken: AccessToken?, onSuccess: (r: Boolean)->Unit,
-                     onFail: (r: Response<Boolean>?, t: Throwable?)->Unit) {
-        val service = app.getService<UtilService>()
-        val call = service.ping(accessToken!!.id)
-        call.enqueue(object : Callback<Boolean> {
-            override fun onFailure(call: Call<Boolean>, t: Throwable) {
-                onFail(null, t)
-            }
-
-            override fun onResponse(call: Call<Boolean>, response: Response<Boolean>) {
-                if (response.isSuccessful) {
-                    onSuccess(response.body())
-                } else {
-                    onFail(response, null)
-                }
-            }
-        })
-    }
+    private fun ping(accessToken: String) = app.getService<UtilService>().ping(accessToken)
 
     private fun reloadPeople() {
-        val service = PeopleService(app.getService())
-        service.listPeople(app.accessToken.id)
-                .subscribeOn(Schedulers.io())
+        val service = app.getService<PeopleService>()
+        service.listPeople(app.accessToken)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe( {
+                .subscribe({
                     recycler_view.adapter = PersonAdapter(it, { summonPerson(it) })
                 }, {
                     refresher.isRefreshing = false
@@ -217,54 +193,31 @@ class MainActivity : AppCompatActivity() {
                 }, {
                     refresher.isRefreshing = false
                 })
+                .addTo(disposable)
     }
 
     private fun reloadRequests(incoming: Boolean) {
-        AsyncTask.execute {
-            val requestService = app.getService<SummonRequestService>()
-            val accessToken = app.accessToken
-            val call = if (incoming)
-                requestService.listIncomingRequests(accessToken.userId, accessToken.id)
-            else
-                requestService.listOutgoingRequests(accessToken.userId, accessToken.id)
-            try {
-                val response = call.execute()
-                val success : Boolean
-                val requestVMs: MutableList<SummonRequestVM?>
-                if (response.isSuccessful) {
-                    success = true
-                    val peopleService = app.getService<IPeopleService>()
-                    val requests = response.body()
-                    requestVMs = MutableList(requests.size, { null })
-                    for ((index, request) in requests.withIndex()) {
-                        val pCall = peopleService.getPerson(
-                                if (incoming) request.callerId else request.targetId,
-                                accessToken.id
-                        )
-                        val pResponse = pCall.execute()
-                        if (pResponse.isSuccessful) {
-                            val person = pResponse.body()
-                            val requestVM = SummonRequestVM(request, person, incoming)
-                            requestVMs[index] = requestVM
-                        }
+        val peopleService = app.getService<PeopleService>()
+        val accessToken = app.accessToken
+        if (incoming)
+            peopleService.listIncomingRequests(app.user.id, accessToken)
+        else
+            peopleService.listOutgoingRequests(app.user.id, accessToken)
+                    .map {
+                        return@map it.map { SummonRequestVM(it, incoming) }
                     }
-                } else {
-                    success = false
-                    requestVMs = MutableList(0, { null })
-                }
-                runOnUiThread {
-                    refresher.isRefreshing = false
-                    recycler_view.adapter = SummonRequestAdapter(requestVMs.filterNotNull(), { openSummonRequest(it) })
-                    if (!success)
-                        Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
-                }
-            } catch (e: IOException) {
-                Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
-                runOnUiThread {
-                    refresher.isRefreshing = false
-                }
-            }
-        }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            {
+                                recycler_view.adapter = SummonRequestAdapter(it, { openSummonRequest(it) })
+                            },
+                            {
+                                Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
+                            },
+                            {
+                                refresher.isRefreshing = false
+                            })
+                    .addTo(disposable)
     }
 }
 

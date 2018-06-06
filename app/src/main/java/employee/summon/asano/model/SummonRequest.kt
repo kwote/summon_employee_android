@@ -1,7 +1,7 @@
 package employee.summon.asano.model
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
 import employee.summon.asano.getDateWithServerTimeStamp
 import kotlinx.android.parcel.Parcelize
 import java.util.*
@@ -14,14 +14,9 @@ enum class RequestStatus(val code: Int) {
 
 @Parcelize
 data class SummonRequest(val id: Int?, val callerId: Int, val targetId: Int,
-                         @field:SerializedName("requested") private val requestTime: String,
-                         @field:SerializedName("responded") private val responseTime: String? = null,
-                         val state: Int = 0, val enabled: Boolean = false) : Parcelable {
-    val requested
-        get() = requestTime.getDateWithServerTimeStamp()
-
-    val responded
-        get() = responseTime?.getDateWithServerTimeStamp()
+                         val requested: String, val responded: String? = null,
+                         val state: Int = 0, val enabled: Boolean = false,
+                         val caller: Person? = null, val target: Person? = null) : Parcelable {
 
     val pending
         get() = state == RequestStatus.Pending.code

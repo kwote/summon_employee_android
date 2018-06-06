@@ -12,17 +12,11 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.TextView
-
-import employee.summon.asano.App
-import employee.summon.asano.R
-import employee.summon.asano.getStringTimeStampWithDate
+import employee.summon.asano.*
 import employee.summon.asano.model.AddPerson
-import employee.summon.asano.model.Person
-import employee.summon.asano.rest.IPeopleService
+import employee.summon.asano.rest.PeopleService
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_register.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 import java.util.regex.Pattern
 
@@ -46,8 +40,13 @@ class RegisterActivity : AppCompatActivity() {
             false
         })
 
-        val mEmailRegisterButton = findViewById<Button>(R.id.email_register_button)
-        mEmailRegisterButton.setOnClickListener { attemptRegister() }
+        email_register_button.setOnClickListener { attemptRegister() }
+    }
+
+    private val disposable = AndroidDisposable()
+    override fun onDestroy() {
+        disposable.dispose()
+        super.onDestroy()
     }
 
 
@@ -72,9 +71,9 @@ class RegisterActivity : AppCompatActivity() {
         val passwordConfirm = password_confirm.text.toString()
         val firstName = firstname.text.toString()
         val lastName = lastname.text.toString()
-        var patronymic : String? = patronymic_view.text.toString()
-        var phone : String? = phone_view.text.toString()
-        var post : String? = post_view.text.toString()
+        var patronymic: String? = patronymic_view.text.toString()
+        var phone: String? = phone_view.text.toString()
+        var post: String? = post_view.text.toString()
 
         var cancel = false
         var focusView: View? = null
@@ -137,31 +136,23 @@ class RegisterActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user register attempt.
             showProgress(true)
-            val service = app.getService<IPeopleService>()
+            val service = app.getService<PeopleService>()
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
             val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, now)
-            val call = service.addPerson(addPerson)
-
-            call.enqueue(object : Callback<Person> {
-                override fun onResponse(call: Call<Person>, response: Response<Person>) {
-                    showProgress(false)
-                    if (!response.isSuccessful) {
-                        val error = response.errorBody()
-
+            service.addPerson(addPerson)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            {
+                                val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
+                                startActivity(intent)
+                                finish()
+                            }, {
                         password_register.error = getString(R.string.error_incorrect_password)
                         password_register.requestFocus()
-                    } else {
-                        val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
-                        startActivity(intent)
-                        finish()
-                    }
-                }
-
-                override fun onFailure(call: Call<Person>, t: Throwable) {
-                    showProgress(false)
-                }
-            })
+                    }, {
+                        showProgress(false)
+                    }).addTo(disposable)
         }
     }
 

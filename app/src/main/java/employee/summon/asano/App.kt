@@ -1,20 +1,21 @@
 package employee.summon.asano
 
 import android.app.Application
-import android.content.Intent
-import android.os.Build
 
-import employee.summon.asano.model.AccessToken
+import employee.summon.asano.model.Person
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 class App : Application() {
-    lateinit var accessToken: AccessToken
+    lateinit var accessToken: String
+    lateinit var user: Person
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()
                 .baseUrl(getString(R.string.base_url))
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(MoshiConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.createAsync())
                 .build()
     }
 

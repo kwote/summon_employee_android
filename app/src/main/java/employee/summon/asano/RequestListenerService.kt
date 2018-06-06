@@ -10,7 +10,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
-import com.google.gson.Gson
+import com.squareup.moshi.Moshi
 import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
@@ -89,6 +89,8 @@ class RequestListenerService : Service() {
 
     private var eventSource: EventSource? = null
 
+    private val builder = Moshi.Builder().build()
+
     inner class RequestHandler : EventSourceHandler {
         override fun onConnect() {
             Log.v("SSE connected", "True")
@@ -101,7 +103,8 @@ class RequestListenerService : Service() {
         override fun onMessage(event: String?, message: MessageEvent) {
             Log.v("SSE Message", event)
             Log.v("SSE Message: ", message.data)
-            val request = Gson().fromJson<SummonRequestMessage>(message.data, SummonRequestMessage::class.java)
+            val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
+            val request = adapter.fromJson(message.data) ?: return
             if (request.data.targetId == accessToken?.userId) {
                 val intent = Intent(App.REQUEST_RECEIVED)
                 intent.setClass(this@RequestListenerService, RequestReceiver::class.java)

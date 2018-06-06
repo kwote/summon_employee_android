@@ -10,18 +10,18 @@ import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.WindowManager
+import employee.summon.asano.AndroidDisposable
 import employee.summon.asano.App
 import employee.summon.asano.App.Companion.REQUEST
 import employee.summon.asano.R
 import employee.summon.asano.activity.PersonActivity.Companion.PERSON
+import employee.summon.asano.addTo
 import employee.summon.asano.databinding.SummonActivityBinding
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.SummonRequestService
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_summon.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 
 class SummonActivity : AppCompatActivity() {
@@ -76,45 +76,36 @@ class SummonActivity : AppCompatActivity() {
         })
     }
 
-    private fun acceptRequest(request: SummonRequest) {
-        val service = app.getService<SummonRequestService>()
-        val call = service.acceptRequest(request.id!!, app.accessToken.id)
-        call.enqueue(object : Callback<SummonRequest> {
-            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
-                Log.e(SummonActivity::class.java.simpleName, "Accept request failed", t)
-            }
+    private val disposable = AndroidDisposable()
+    override fun onDestroy() {
+        disposable.dispose()
+        super.onDestroy()
+    }
 
-            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
+    private fun acceptRequest(request: SummonRequest) = app.getService<SummonRequestService>()
+            .acceptRequest(request.id!!, app.accessToken)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
                 Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
-            }
-        })
-    }
+            }, {
+                Log.e(SummonActivity::class.java.simpleName, "Accept request failed", it)
+            }).addTo(disposable)
 
-    private fun rejectRequest(request: SummonRequest) {
-        val service = app.getService<SummonRequestService>()
-        val call = service.rejectRequest(request.id!!, app.accessToken.id)
-        call.enqueue(object : Callback<SummonRequest> {
-            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
-                Log.e(SummonActivity::class.java.simpleName, "Reject request failed", t)
-            }
-
-            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
+    private fun rejectRequest(request: SummonRequest) = app.getService<SummonRequestService>()
+            .rejectRequest(request.id!!, app.accessToken)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
                 Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
-            }
-        })
-    }
+            }, {
+                Log.e(SummonActivity::class.java.simpleName, "Reject request failed", it)
+            }).addTo(disposable)
 
-    private fun cancelRequest(request: SummonRequest) {
-        val service = app.getService<SummonRequestService>()
-        val call = service.cancelRequest(request.id!!, app.accessToken.id)
-        call.enqueue(object : Callback<SummonRequest> {
-            override fun onFailure(call: Call<SummonRequest>, t: Throwable) {
-                Log.e(SummonActivity::class.java.simpleName, "Cancel request failed", t)
-            }
-
-            override fun onResponse(call: Call<SummonRequest>, response: Response<SummonRequest>) {
+    private fun cancelRequest(request: SummonRequest) = app.getService<SummonRequestService>()
+            .cancelRequest(request.id!!, app.accessToken)
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
                 Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
-            }
-        })
-    }
+            }, {
+                Log.e(SummonActivity::class.java.simpleName, "Cancel request failed", it)
+            }).addTo(disposable)
 }

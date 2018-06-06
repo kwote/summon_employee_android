@@ -7,13 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import employee.summon.asano.App
 import employee.summon.asano.R
-import employee.summon.asano.model.Person
 import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequest
-import employee.summon.asano.rest.IPeopleService
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import employee.summon.asano.rest.PeopleService
 
 class RequestReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -24,27 +20,17 @@ class RequestReceiver : BroadcastReceiver() {
             if (request.enabled && request.pending) {
                 val callerId = request.callerId
                 val app = context.applicationContext as App
-                val service = app.getService<IPeopleService>()
-                val call = service.getPerson(callerId, app.accessToken.id)
-                call.enqueue(object : Callback<Person> {
-                    override fun onFailure(call: Call<Person>, t: Throwable) {
-                        Log.e(RequestReceiver::class.java.simpleName, "request error", t)
-                    }
-
-                    override fun onResponse(call: Call<Person>, response: Response<Person>) {
-                        if (response.isSuccessful) {
-                            val caller = response.body()
-                            val launchIntent = Intent(context, SummonActivity::class.java)
-                            launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
-                            launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
-                            launchIntent.putExtra(App.REQUEST, request)
-                            launchIntent.putExtra(PersonActivity.PERSON, caller)
-                            context.startActivity(launchIntent)
-                        } else {
-                            Log.e(RequestReceiver::class.java.simpleName, "request failed")
-                        }
-                    }
+                val service = app.getService<PeopleService>()
+                service.getPerson(callerId, app.accessToken).subscribe({
+                    val launchIntent = Intent(context, SummonActivity::class.java)
+                    launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
+                    launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
+                    launchIntent.putExtra(App.REQUEST, request)
+                    launchIntent.putExtra(PersonActivity.PERSON, it)
+                    context.startActivity(launchIntent)
+                }, {
+                    Log.e(RequestReceiver::class.java.simpleName, "request error", it)
                 })
             } else if (!request.enabled) {
                 // TODO notification

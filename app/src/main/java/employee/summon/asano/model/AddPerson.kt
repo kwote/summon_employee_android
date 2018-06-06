@@ -1,9 +1,9 @@
 package employee.summon.asano.model
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
 
-class AddPerson(@field:SerializedName("firstname") val firstName: String,
-                @field:SerializedName("lastname") val lastName: String, val patronymic: String?,
+class AddPerson(@Json(name = "firstname") val firstName: String,
+                @Json(name = "lastname") val lastName: String, val patronymic: String?,
                 val post: String?, val email: String, val phone: String?, val password: String,
                 val lastActiveTime: String
 )

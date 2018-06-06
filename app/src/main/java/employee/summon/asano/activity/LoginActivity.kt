@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
 import android.content.Intent
-
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -13,16 +12,14 @@ import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-
+import employee.summon.asano.AndroidDisposable
 import employee.summon.asano.App
 import employee.summon.asano.R
-import employee.summon.asano.model.AccessToken
+import employee.summon.asano.addTo
 import employee.summon.asano.model.LoginCredentials
-import employee.summon.asano.rest.IPeopleService
+import employee.summon.asano.rest.PeopleService
+import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_login.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 /**
  * A login screen that offers login via email/password.
@@ -56,6 +53,12 @@ class LoginActivity : AppCompatActivity() {
 
     private val app: App
         get() = application as App
+
+    private val disposable = AndroidDisposable()
+    override fun onDestroy() {
+        disposable.dispose()
+        super.onDestroy()
+    }
 
     /**
      * Attempts to sign in or register the account specified by the login form.
@@ -105,30 +108,20 @@ class LoginActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            val peopleService = app.retrofit!!.create<IPeopleService>(IPeopleService::class.java)
+            val peopleService = app.getService<PeopleService>()
             val credentials = LoginCredentials(emailStr, passwordStr)
-            val call = peopleService.login(credentials)
-
-            call.enqueue(object : Callback<AccessToken> {
-                override fun onResponse(call: Call<AccessToken>, response: Response<AccessToken>) {
-                    if (!response.isSuccessful) {
-                        showProgress(false)
-                        Snackbar.make(email_login, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
-                    } else {
-                        val accessToken = response.body()
+            peopleService.login(credentials)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
-                        intent.putExtra(App.ACCESS_TOKEN, accessToken)
+                        intent.putExtra(App.ACCESS_TOKEN, it)
                         startActivity(intent)
                         finish()
-                    }
-                }
-
-                override fun onFailure(call: Call<AccessToken>, t: Throwable) {
-                    Snackbar.make(email_login, R.string.connection_failed, Snackbar.LENGTH_LONG).show()
-                    showProgress(false)
-                }
-            })
+                    }, {
+                        Snackbar.make(email_login, R.string.connection_failed, Snackbar.LENGTH_LONG).show()
+                        showProgress(false)
+                    }).addTo(disposable)
         }
     }
 
