@@ -44,9 +44,11 @@ class PersonActivity : Activity() {
             getLastOutgoingSummonRequests(app.user.id, person!!.id, 3)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        if (it.isEmpty()) {
+                        val active = it.filter { it.enabled }
+                        if (active.isEmpty()) {
                             makeSummonButton()
                         } else {
+                            pendingRequest = active[0]
                             makeCancelButton()
                         }
                     }, {

@@ -10,15 +10,18 @@ import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.util.Log
+import android.widget.Toast
 import com.squareup.moshi.Moshi
 import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
-import employee.summon.asano.activity.RequestReceiver
+import employee.summon.asano.activity.PersonActivity
 import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.AccessToken
+import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequestMessage
+import employee.summon.asano.rest.PeopleService
 
 
 class RequestListenerService : Service() {
@@ -37,10 +40,7 @@ class RequestListenerService : Service() {
                     if (intent.hasExtra(App.ACCESS_TOKEN)) {
                         accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
                     }
-                    eventSource = EventSource.Builder(getString(R.string.base_url) + REQUEST_URL_SUFFIX)
-                            .eventHandler(requestHandler)
-                            .build()
-                    eventSource!!.connect()
+                    eventSource.connect()
                 }
                 ACTION_CLOSE_CONNECTION -> {
                     closeConnection()
@@ -78,16 +78,18 @@ class RequestListenerService : Service() {
     }
 
     private fun closeConnection() {
-        if (eventSource != null) {
-            eventSource!!.close()
-        }
+        eventSource.close()
         requestHandler = null
         stopForeground(true)
     }
 
     private var requestHandler: RequestHandler? = RequestHandler()
 
-    private var eventSource: EventSource? = null
+    private val eventSource: EventSource by lazy {
+        EventSource.Builder(getString(R.string.base_url) + REQUEST_URL_SUFFIX)
+                .eventHandler(requestHandler)
+                .build()
+    }
 
     private val builder = Moshi.Builder().build()
 
@@ -106,17 +108,31 @@ class RequestListenerService : Service() {
             val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
             val request = adapter.fromJson(message.data) ?: return
             if (request.data.targetId == accessToken?.userId) {
-                val intent = Intent(App.REQUEST_RECEIVED)
-                intent.setClass(this@RequestListenerService, RequestReceiver::class.java)
-                intent.putExtra(App.REQUEST, request.data)
-                intent.putExtra(SummonActivity.IS_INCOMING, true)
-                sendBroadcast(intent)
+                if (request.data.enabled && request.data.pending) {
+                    val callerId = request.data.callerId
+                    val app = this@RequestListenerService.applicationContext as App
+                    val service = app.getService<PeopleService>()
+                    service.getPerson(callerId, app.accessToken).subscribe({
+                        val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
+                        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
+                        launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
+                        launchIntent.putExtra(App.REQUEST, request.data)
+                        launchIntent.putExtra(PersonActivity.PERSON, it)
+                        this@RequestListenerService.startActivity(launchIntent)
+                    }, {
+                        Log.e(RequestListenerService::class.java.simpleName, "request error", it)
+                    })
+                } else if (!request.data.enabled) {
+                    Toast.makeText(this@RequestListenerService, R.string.request_canceled, Toast.LENGTH_LONG).show()
+                }
             } else if (request.data.callerId == accessToken?.userId) {
-                val intent = Intent(App.REQUEST_RECEIVED)
-                intent.setClass(this@RequestListenerService, RequestReceiver::class.java)
-                intent.putExtra(App.REQUEST, request.data)
-                intent.putExtra(SummonActivity.IS_INCOMING, false)
-                sendBroadcast(intent)
+                when (request.data.state) {
+                    RequestStatus.Accepted.code ->
+                        Toast.makeText(this@RequestListenerService, R.string.request_accepted, Toast.LENGTH_LONG).show()
+                    RequestStatus.Rejected.code ->
+                        Toast.makeText(this@RequestListenerService, R.string.request_rejected, Toast.LENGTH_LONG).show()
+                }
             }
         }
 

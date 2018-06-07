@@ -9,7 +9,7 @@ data class SummonRequestVM(val request: SummonRequest, val incoming: Boolean) {
     val enabled
         get() = request.enabled
     val person
-        get() = (if (incoming) request.caller else request.target)
+        get() = if (incoming) request.caller else request.target
     val personName
         get() = person?.fullName
     val requested: CharSequence?

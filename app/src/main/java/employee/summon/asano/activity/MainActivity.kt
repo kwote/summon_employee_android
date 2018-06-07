@@ -10,6 +10,9 @@ import android.support.v7.widget.LinearLayoutManager
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.JsonEncodingException
+import com.squareup.moshi.Moshi
 import employee.summon.asano.*
 import employee.summon.asano.adapter.PersonAdapter
 import employee.summon.asano.adapter.SummonRequestAdapter
@@ -80,32 +83,29 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val fullToken: AccessToken?
+        val accessToken: AccessToken?
         if (intent.hasExtra(App.ACCESS_TOKEN)) {
-            fullToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
-            fullToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
-            saveAccessToken(fullToken)
+            accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
+            accessToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
+            saveAccessToken(accessToken)
 
             reload()
         } else {
-            val accessToken = readAccessToken()
+            accessToken = readAccessToken()
             if (accessToken == null) {
                 login()
                 return
             }
             showProgress(true)
-            ping(accessToken).observeOn(AndroidSchedulers.mainThread()).subscribe( {
-                if (it) {
-                    app.accessToken = accessToken
-                    reload()
-                } else {
-                    login()
-                }
+            val pingObs = ping(accessToken.id).observeOn(AndroidSchedulers.mainThread())
+            pingObs.filter {it}.subscribe( {
+                saveAccessToken(accessToken)
+                showProgress(false)
+                reload()
             }, {
                 login()
-            }, {
-                showProgress(false)
             }).addTo(disposable)
+            pingObs.filter { !it }.subscribe { login() }.addTo(disposable)
         }
         recycler_view.layoutManager = LinearLayoutManager(this)
 
@@ -143,22 +143,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val moshi : Moshi = Moshi.Builder().build()
+
     private fun saveAccessToken(accessToken: AccessToken) {
         app.accessToken = accessToken.id
         app.user = accessToken.user
         val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        sharedPref.putString(App.ACCESS_TOKEN, accessToken.id)
+        val accessTokenStr = moshi.adapter(AccessToken::class.java).toJson(accessToken)
+        sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
         sharedPref.apply()
     }
 
-    private fun readAccessToken(): String? {
+    private fun readAccessToken(): AccessToken? {
         val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        val accessToken = sharedPref.getString(App.ACCESS_TOKEN, "")
-        if (TextUtils.isEmpty(accessToken)) {
+        val accessTokenStr = sharedPref.getString(App.ACCESS_TOKEN, "")
+        if (TextUtils.isEmpty(accessTokenStr)) {
             return null
         }
-
-        return accessToken
+        return try {
+            moshi.adapter(AccessToken::class.java).fromJson(accessTokenStr)
+        } catch (e: JsonEncodingException) {
+            null
+        }
     }
 
     private val disposable = AndroidDisposable()
@@ -198,10 +204,10 @@ class MainActivity : AppCompatActivity() {
     private fun reloadRequests(incoming: Boolean) {
         val peopleService = app.getService<PeopleService>()
         val accessToken = app.accessToken
-        if (incoming)
+        (if (incoming)
             peopleService.listIncomingRequests(app.user.id, accessToken)
         else
-            peopleService.listOutgoingRequests(app.user.id, accessToken)
+            peopleService.listOutgoingRequests(app.user.id, accessToken))
                     .map {
                         return@map it.map { SummonRequestVM(it, incoming) }
                     }

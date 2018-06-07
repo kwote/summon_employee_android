@@ -39,15 +39,6 @@
             android:screenOrientation="portrait"
             android:label="@string/title_activity_person" />
 
-        <receiver
-            android:name=".activity.RequestReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="employee.summon.asano.REQUEST_RECEIVED" />
-            </intent-filter>
-        </receiver>
-
         <activity android:name=".activity.SummonActivity"
             android:screenOrientation="portrait" />
 
