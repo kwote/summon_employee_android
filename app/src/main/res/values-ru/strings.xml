@@ -1,14 +1,13 @@
 <resources>
     <string name="app_name">Вызов сотрудника</string>
 
-    <!-- Strings related to login -->
     <string name="prompt_email">E-mail</string>
     <string name="prompt_password">Пароль</string>
     <string name="prompt_department">Отдел</string>
     <string name="action_sign_in">Войти</string>
     <string name="action_register">Регистрация</string>
     <string name="action_sign_in_short">Войти</string>
-    <string name="error_invalid_email">Вы ввели некорректный E-mail</string>
+    <string name="error_invalid_email">Вы ввели некорректный e-mail</string>
     <string name="error_invalid_phone">Некорректный телефон</string>
     <string name="error_invalid_password">Слишком короткий пароль</string>
     <string name="error_incorrect_password">Неверный пароль</string>
@@ -23,7 +22,7 @@
     <string name="title_activity_person">Вызвать сотрудника</string>
     <string name="logout">Выйти</string>
     <string name="prompt_patronymic">Отчество (необязательно)</string>
-    <string name="prompt_phone">Телефон</string>
+    <string name="prompt_phone">Телефон (необязательно)</string>
     <string name="prompt_password_confirm">Повторите пароль</string>
     <string name="online">Доступен</string>
     <string name="employee_photo">Фотография</string>
@@ -31,11 +30,11 @@
     <string name="call">Позвонить по тел. номеру</string>
     <string name="summon_failed">Вызов не удался</string>
     <string name="clear">Clear</string>
-    <string name="cancel_successful">Request canceled</string>
+    <string name="cancel_successful">Вызов отменён</string>
     <string name="action_accept">Принять</string>
     <string name="action_reject">Отказаться</string>
     <string name="prompt_post">Должность</string>
-    <string name="connection_failed">Connection failed</string>
-    <string name="error_password_dont_match">Passwords don\'t match</string>
-    <string name="summon_succeeded">Summon succeded</string>
+    <string name="connection_failed">Не удалось подключиться</string>
+    <string name="error_password_dont_match">Пароли не совпадают</string>
+    <string name="summon_succeeded">Вызов успешен</string>
 </resources>
