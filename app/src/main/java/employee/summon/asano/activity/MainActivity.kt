@@ -10,7 +10,6 @@ import android.support.v7.widget.LinearLayoutManager
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
-import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import employee.summon.asano.*
@@ -86,10 +85,7 @@ class MainActivity : AppCompatActivity() {
         val accessToken: AccessToken?
         if (intent.hasExtra(App.ACCESS_TOKEN)) {
             accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
-            accessToken?.let { RequestListenerService.startActionListenRequest(this@MainActivity, it) }
-            saveAccessToken(accessToken)
-
-            reload()
+            prepare(accessToken)
         } else {
             accessToken = readAccessToken()
             if (accessToken == null) {
@@ -98,10 +94,9 @@ class MainActivity : AppCompatActivity() {
             }
             showProgress(true)
             val pingObs = ping(accessToken.id).observeOn(AndroidSchedulers.mainThread())
-            pingObs.filter {it}.subscribe( {
-                saveAccessToken(accessToken)
+            pingObs.filter { it }.subscribe( {
                 showProgress(false)
-                reload()
+                prepare(accessToken)
             }, {
                 login()
             }).addTo(disposable)
@@ -114,6 +109,12 @@ class MainActivity : AppCompatActivity() {
         refresher.setOnRefreshListener {
             reload()
         }
+    }
+
+    private fun prepare(accessToken: AccessToken) {
+        RequestListenerService.startActionListenRequest(this@MainActivity, accessToken)
+        saveAccessToken(accessToken)
+        reload()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

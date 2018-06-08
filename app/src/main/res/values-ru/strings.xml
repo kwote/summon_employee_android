@@ -37,4 +37,5 @@
     <string name="connection_failed">Не удалось подключиться</string>
     <string name="error_password_dont_match">Пароли не совпадают</string>
     <string name="summon_succeeded">Вызов успешен</string>
+    <string name="notifications_channel_description">Уведомления об ожидании вызовов</string>
 </resources>
