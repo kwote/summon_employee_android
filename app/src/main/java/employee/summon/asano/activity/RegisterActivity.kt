@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.Button
 import android.widget.TextView
 import employee.summon.asano.*
 import employee.summon.asano.model.AddPerson

@@ -29,7 +29,7 @@ class RequestListenerService : Service() {
         return null
     }
 
-    private var accessToken : AccessToken? = null
+    private var accessToken: AccessToken? = null
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -50,7 +50,7 @@ class RequestListenerService : Service() {
             val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                     WAKELOCK_TAG)
-            wakeLock?.acquire(3600*8*1000)
+            wakeLock?.acquire(3600 * 8 * 1000)
         }
         return super.onStartCommand(intent, flags, startId)
     }
@@ -194,6 +194,7 @@ class RequestListenerService : Service() {
                 context.startService(intent)
             }
         }
+
         /**
          * Starts this service to perform action Foo with the given parameters. If
          * the service is already performing a task this action will be queued.

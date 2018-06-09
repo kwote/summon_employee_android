@@ -40,8 +40,8 @@ class LoginActivity : AppCompatActivity() {
             false
         })
 
-        email_sign_in_button.setOnClickListener({attemptLogin()})
-        email_register_login_button.setOnClickListener({registerNewPerson()})
+        email_sign_in_button.setOnClickListener({ attemptLogin() })
+        email_register_login_button.setOnClickListener({ registerNewPerson() })
     }
 
     private fun registerNewPerson() {

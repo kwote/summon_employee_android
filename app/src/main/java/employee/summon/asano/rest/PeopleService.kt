@@ -8,7 +8,7 @@ import retrofit2.http.*
 interface PeopleService {
     @PUT("people/ping")
     fun ping(@Header("Authorization") accessToken: String): Observable<Boolean>
-    
+
     @GET("people")
     fun listPeople(@Header("Authorization") accessToken: String): Observable<List<Person>>
 

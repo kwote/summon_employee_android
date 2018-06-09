@@ -14,10 +14,6 @@ import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.SummonRequestService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_person.*
-import okhttp3.ResponseBody
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 
 class PersonActivity : Activity() {
@@ -44,7 +40,7 @@ class PersonActivity : Activity() {
             getLastOutgoingSummonRequests(app.user.id, person!!.id, 3)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        val active = it.filter { it.enabled }
+                        val active = it.filter { it.pending }
                         if (active.isEmpty()) {
                             makeSummonButton()
                         } else {
