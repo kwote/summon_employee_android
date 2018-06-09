@@ -26,13 +26,13 @@ interface PeopleService {
 
     @GET("people/{id}/incomingRequests")
     fun listIncomingRequests(
-            @Path("id") personId: Int?, @Header("Authorization") accessToken: String,
+            @Path("id") targetId: Int, @Header("Authorization") accessToken: String,
             @Query("filter[include]") obj: String = "caller"
     ): Observable<List<SummonRequest>>
 
     @GET("people/{id}/outgoingRequests")
     fun listOutgoingRequests(
-            @Path("id") personId: Int?, @Header("Authorization") accessToken: String,
+            @Path("id") callerId: Int, @Header("Authorization") accessToken: String,
             @Query("filter[include]") obj: String = "target"
     ): Observable<List<SummonRequest>>
 }

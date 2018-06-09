@@ -31,7 +31,6 @@ class App : Application() {
     }
 
     companion object {
-        const val REQUEST_RECEIVED = "employee.summon.asano.REQUEST_RECEIVED"
         const val REQUEST = "request_extra"
         const val ACCESS_TOKEN = "access_token"
     }

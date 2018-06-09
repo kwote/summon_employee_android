@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity() {
             }
             showProgress(true)
             val pingObs = ping(accessToken.id).observeOn(AndroidSchedulers.mainThread())
-            pingObs.filter { it }.subscribe( {
+            pingObs.filter { it }.subscribe({
                 showProgress(false)
                 prepare(accessToken)
             }, {
@@ -144,13 +144,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val moshi : Moshi = Moshi.Builder().build()
-
     private fun saveAccessToken(accessToken: AccessToken) {
         app.accessToken = accessToken.id
         app.user = accessToken.user
         val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        val accessTokenStr = moshi.adapter(AccessToken::class.java).toJson(accessToken)
+        val accessTokenStr = Moshi.Builder().build()
+                .adapter(AccessToken::class.java).toJson(accessToken)
         sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
         sharedPref.apply()
     }
@@ -162,7 +161,7 @@ class MainActivity : AppCompatActivity() {
             return null
         }
         return try {
-            moshi.adapter(AccessToken::class.java).fromJson(accessTokenStr)
+            Moshi.Builder().build().adapter(AccessToken::class.java).fromJson(accessTokenStr)
         } catch (e: JsonEncodingException) {
             null
         }
@@ -209,21 +208,21 @@ class MainActivity : AppCompatActivity() {
             peopleService.listIncomingRequests(app.user.id, accessToken)
         else
             peopleService.listOutgoingRequests(app.user.id, accessToken))
-                    .map {
-                        return@map it.map { SummonRequestVM(it, incoming) }
-                    }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                            {
-                                recycler_view.adapter = SummonRequestAdapter(it, { openSummonRequest(it) })
-                            },
-                            {
-                                Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
-                            },
-                            {
-                                refresher.isRefreshing = false
-                            })
-                    .addTo(disposable)
+                .map {
+                    return@map it.map { SummonRequestVM(it, incoming) }
+                }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        {
+                            recycler_view.adapter = SummonRequestAdapter(it, { openSummonRequest(it) })
+                        },
+                        {
+                            Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
+                        },
+                        {
+                            refresher.isRefreshing = false
+                        })
+                .addTo(disposable)
     }
 }
 
