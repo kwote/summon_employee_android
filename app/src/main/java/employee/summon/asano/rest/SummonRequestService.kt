@@ -22,10 +22,12 @@ interface SummonRequestService {
     fun rejectRequest(@Path("id") requestId: Int): Observable<SummonRequest>
 
     @PUT("summonrequests/{id}/cancel")
-    fun cancelRequest(@Path("id") requestId: Int, @Header("Authorization") accessToken: String): Observable<SummonRequest>
+    fun cancelRequest(@Path("id") requestId: Int,
+                      @Header("Authorization") accessToken: String): Observable<SummonRequest>
 
     @DELETE("summonrequests/{id}")
-    fun deleteRequest(@Path("id") requestId: Int, @Header("Authorization") accessToken: String): Observable<ResponseBody>
+    fun deleteRequest(@Path("id") requestId: Int,
+                      @Header("Authorization") accessToken: String): Observable<ResponseBody>
 
     @GET("summonrequests")
     fun listOutgoingRequests(

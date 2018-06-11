@@ -18,7 +18,7 @@ import kotlinx.android.synthetic.main.activity_person.*
 import java.util.*
 
 class PersonActivity : Activity() {
-    private var person: Person? = null
+    private lateinit var person: Person
     private val app: App
         get() = application as App
     private var pendingRequest: SummonRequest? = null
@@ -33,12 +33,12 @@ class PersonActivity : Activity() {
         binding.person = person
 
         call_fab.setOnClickListener({ _ ->
-            val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", person?.phone, null))
+            val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", person.phone, null))
             startActivity(intent)
         })
 
-        if (app.user.id != person?.id) {
-            getLastOutgoingSummonRequests(app.user.id, person!!.id, 3)
+        if (app.user.id != person.id) {
+            getLastOutgoingSummonRequests(app.user.id, person.id, 3)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
                         val active = it.filter { it.pending }
@@ -71,7 +71,7 @@ class PersonActivity : Activity() {
         summon_fab.setOnClickListener({ _ ->
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
             val accessToken = app.accessToken
-            val addRequest = AddSummonRequest(app.user.id, person!!.id, now)
+            val addRequest = AddSummonRequest(app.user.id, person.id, now)
             val service = app.getService<SummonRequestService>()
             service.addSummonRequest(addRequest, accessToken)
                     .observeOn(AndroidSchedulers.mainThread())
