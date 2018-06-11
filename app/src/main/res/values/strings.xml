@@ -50,4 +50,7 @@
     <string name="reload_failed">Reload failed</string>
     <string name="summon_succeeded">Summon succeeded</string>
     <string name="notifications_channel_description">Notifications for listening requests</string>
+    <string name="request_accept_failed">Failed to accept request</string>
+    <string name="request_reject_failed">Failed to reject request</string>
+    <string name="request_cancel_failed">Failed to cancel request</string>
 </resources>

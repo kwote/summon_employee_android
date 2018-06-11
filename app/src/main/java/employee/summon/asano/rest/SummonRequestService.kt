@@ -1,5 +1,6 @@
 package employee.summon.asano.rest
 
+import employee.summon.asano.model.AddSummonRequest
 import employee.summon.asano.model.SummonRequest
 import io.reactivex.Observable
 import okhttp3.ResponseBody
@@ -11,16 +12,14 @@ interface SummonRequestService {
                          @Header("Authorization") accessToken: String): Observable<SummonRequest>
 
     @POST("summonrequests")
-    fun addSummonRequest(@Body request: SummonRequest,
+    fun addSummonRequest(@Body request: AddSummonRequest,
                          @Header("Authorization") accessToken: String): Observable<SummonRequest>
 
     @PUT("summonrequests/{id}/accept")
-    fun acceptRequest(@Path("id") requestId: Int,
-                      @Header("Authorization") accessToken: String): Observable<SummonRequest>
+    fun acceptRequest(@Path("id") requestId: Int): Observable<SummonRequest>
 
     @PUT("summonrequests/{id}/reject")
-    fun rejectRequest(@Path("id") requestId: Int,
-                      @Header("Authorization") accessToken: String): Observable<SummonRequest>
+    fun rejectRequest(@Path("id") requestId: Int): Observable<SummonRequest>
 
     @PUT("summonrequests/{id}/cancel")
     fun cancelRequest(@Path("id") requestId: Int, @Header("Authorization") accessToken: String): Observable<SummonRequest>

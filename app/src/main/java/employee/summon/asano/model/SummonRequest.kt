@@ -3,12 +3,6 @@ package employee.summon.asano.model
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
-enum class RequestStatus(val code: Int) {
-    Pending(0),
-    Accepted(1),
-    Rejected(2)
-}
-
 @Parcelize
 data class SummonRequest(val id: Int?, val callerId: Int, val targetId: Int,
                          val requested: String, val responded: String? = null,

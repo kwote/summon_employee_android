@@ -9,6 +9,7 @@ import android.support.design.widget.Snackbar
 import android.view.View
 import employee.summon.asano.*
 import employee.summon.asano.databinding.PersonActivityBinding
+import employee.summon.asano.model.AddSummonRequest
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.SummonRequestService
@@ -70,7 +71,7 @@ class PersonActivity : Activity() {
         summon_fab.setOnClickListener({ _ ->
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
             val accessToken = app.accessToken
-            val addRequest = SummonRequest(null, app.user.id, person!!.id, now)
+            val addRequest = AddSummonRequest(app.user.id, person!!.id, now)
             val service = app.getService<SummonRequestService>()
             service.addSummonRequest(addRequest, accessToken)
                     .observeOn(AndroidSchedulers.mainThread())

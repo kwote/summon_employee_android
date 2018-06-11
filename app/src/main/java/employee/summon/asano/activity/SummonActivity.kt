@@ -65,10 +65,23 @@ class SummonActivity : AppCompatActivity() {
         binding.incoming = isIncoming
         accept_request.setOnClickListener({
             acceptRequest(this.request!!)
-            if (isWakeful) finish()
+                    .subscribe({
+                        if (!isWakeful)
+                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
+                        else finish()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
         })
         reject_request.setOnClickListener({
             rejectRequest(this.request!!)
+                    .subscribe({
+                        if (!isWakeful)
+                        Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
+                        else                             finish()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
             if (isWakeful) finish()
         })
         cancel_request.setOnClickListener({
@@ -82,23 +95,14 @@ class SummonActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun acceptRequest(request: SummonRequest) = app.getService<SummonRequestService>()
-            .acceptRequest(request.id!!, app.accessToken)
+    private fun acceptRequest(request: SummonRequest) =
+            app.getService<SummonRequestService>()
+            .acceptRequest(request.id!!)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
-            }, {
-                Log.e(SummonActivity::class.java.simpleName, "Accept request failed", it)
-            }).addTo(disposable)
 
     private fun rejectRequest(request: SummonRequest) = app.getService<SummonRequestService>()
-            .rejectRequest(request.id!!, app.accessToken)
+            .rejectRequest(request.id!!)
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
-            }, {
-                Log.e(SummonActivity::class.java.simpleName, "Reject request failed", it)
-            }).addTo(disposable)
 
     private fun cancelRequest(request: SummonRequest) = app.getService<SummonRequestService>()
             .cancelRequest(request.id!!, app.accessToken)
@@ -106,6 +110,6 @@ class SummonActivity : AppCompatActivity() {
             .subscribe({
                 Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
             }, {
-                Log.e(SummonActivity::class.java.simpleName, "Cancel request failed", it)
+                Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
             }).addTo(disposable)
 }
