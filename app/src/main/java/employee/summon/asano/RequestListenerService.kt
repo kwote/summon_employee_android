@@ -140,20 +140,12 @@ class RequestListenerService : Service() {
             val request = adapter.fromJson(message.data) ?: return
             if (request.data.targetId == accessToken.userId) {
                 if (request.data.enabled && request.data.pending) {
-                    val callerId = request.data.callerId
-                    val app = this@RequestListenerService.applicationContext as App
-                    val service = app.getService<PeopleService>()
-                    service.getPerson(callerId, app.accessToken).subscribe({
-                        val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
-                        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
-                        launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
-                        launchIntent.putExtra(App.REQUEST, request.data)
-                        launchIntent.putExtra(PersonActivity.PERSON, it)
-                        this@RequestListenerService.startActivity(launchIntent)
-                    }, {
-                        Log.e(RequestListenerService::class.java.simpleName, "request error", it)
-                    })
+                    val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
+                    launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
+                    launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
+                    launchIntent.putExtra(App.REQUEST, request.data)
+                    this@RequestListenerService.startActivity(launchIntent)
                 } else if (!request.data.enabled) {
                     Toast.makeText(this@RequestListenerService, R.string.request_canceled, Toast.LENGTH_LONG).show()
                 }
@@ -178,7 +170,7 @@ class RequestListenerService : Service() {
 
     companion object {
         private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream?options="
-        private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"callerId\":%d}}"
+        private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"targetId\":%d}}"
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         private const val WAKELOCK_TAG = "SumEmpWakelockTag"

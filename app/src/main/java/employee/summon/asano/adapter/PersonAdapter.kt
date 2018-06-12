@@ -5,8 +5,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import employee.summon.asano.databinding.PersonBinding
 import employee.summon.asano.model.Person
+import employee.summon.asano.viewmodel.PersonVM
 
-class PersonAdapter(private val people: List<Person>, private val click: (p: Person) -> Unit) :
+class PersonAdapter(private val people: List<Person>, private val click: (p: Person?) -> Unit) :
         RecyclerView.Adapter<PersonViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PersonViewHolder {
         val inflater = LayoutInflater.from(parent.context)

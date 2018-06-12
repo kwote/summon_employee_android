@@ -51,9 +51,6 @@ class LoginActivity : AppCompatActivity() {
         finish()
     }
 
-    private val app: App
-        get() = application as App
-
     private val disposable = AndroidDisposable()
     override fun onDestroy() {
         disposable.dispose()
@@ -108,7 +105,7 @@ class LoginActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true)
-            val peopleService = app.getService<PeopleService>()
+            val peopleService = App.getApp(this).getService<PeopleService>()
             val credentials = LoginCredentials(emailStr, passwordStr)
             peopleService.login(credentials)
                     .observeOn(AndroidSchedulers.mainThread())

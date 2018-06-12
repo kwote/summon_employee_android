@@ -25,9 +25,6 @@ import java.util.regex.Pattern
 class RegisterActivity : AppCompatActivity() {
     private var inProgress = false
 
-    private val app: App
-        get() = application as App
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -135,7 +132,7 @@ class RegisterActivity : AppCompatActivity() {
             // Show a progress spinner, and kick off a background task to
             // perform the user register attempt.
             showProgress(true)
-            val service = app.getService<PeopleService>()
+            val service = App.getApp(this).getService<PeopleService>()
             val now = Calendar.getInstance().time.getStringTimeStampWithDate()
             val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, now)
             service.addPerson(addPerson)

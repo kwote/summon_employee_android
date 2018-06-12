@@ -65,7 +65,6 @@ class MainActivity : AppCompatActivity() {
         val launchIntent = Intent(this, SummonActivity::class.java)
         launchIntent.putExtra(SummonActivity.IS_INCOMING, requestVM.incoming)
         launchIntent.putExtra(App.REQUEST, requestVM.request)
-        launchIntent.putExtra(PersonActivity.PERSON, requestVM.person)
         startActivity(launchIntent)
     }
 
@@ -190,8 +189,12 @@ class MainActivity : AppCompatActivity() {
         val service = app.getService<PeopleService>()
         service.listPeople(app.accessToken)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    recycler_view.adapter = PersonAdapter(it, { summonPerson(it) })
+                .subscribe({ people->
+                    recycler_view.adapter = PersonAdapter(people, { p ->
+                        if (p != null) {
+                            summonPerson(p)
+                        }
+                    })
                 }, {
                     refresher.isRefreshing = false
                     Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
@@ -208,13 +211,13 @@ class MainActivity : AppCompatActivity() {
             peopleService.listIncomingRequests(app.user.id, accessToken)
         else
             peopleService.listOutgoingRequests(app.user.id, accessToken))
-                .map {
-                    return@map it.map { SummonRequestVM(it, incoming) }
+                .map {requests->
+                    return@map requests.map {request-> SummonRequestVM(request, incoming) }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        {
-                            recycler_view.adapter = SummonRequestAdapter(it, { openSummonRequest(it) })
+                        {requestsVM->
+                            recycler_view.adapter = SummonRequestAdapter(requestsVM, {request-> openSummonRequest(request) })
                         },
                         {
                             Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()

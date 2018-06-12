@@ -53,4 +53,5 @@
     <string name="request_accept_failed">Failed to accept request</string>
     <string name="request_reject_failed">Failed to reject request</string>
     <string name="request_cancel_failed">Failed to cancel request</string>
+    <string name="me">Me</string>
 </resources>

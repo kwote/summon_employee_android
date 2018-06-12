@@ -1,6 +1,7 @@
 package employee.summon.asano
 
 import android.app.Application
+import android.content.Context
 
 import employee.summon.asano.model.Person
 import retrofit2.Retrofit
@@ -31,6 +32,8 @@ class App : Application() {
     }
 
     companion object {
+        fun getApp(context: Context) = context.applicationContext as App
+
         const val REQUEST = "request_extra"
         const val ACCESS_TOKEN = "access_token"
     }

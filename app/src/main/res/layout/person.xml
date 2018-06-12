@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="person" type="employee.summon.asano.model.Person"/>
+        <variable name="person" type="employee.summon.asano.viewmodel.PersonVM"/>
     </data>
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
@@ -10,7 +10,7 @@
         <TextView android:layout_width="wrap_content"
             android:id="@+id/fullname"
             android:layout_height="wrap_content"
-            android:text='@{person.fullName}'
+            android:text='@{person.fullNameOrMe(context)}'
             android:textStyle="bold"
             android:textSize="@dimen/name_size"
             app:layout_constraintLeft_toLeftOf="parent"/>

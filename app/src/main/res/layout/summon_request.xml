@@ -10,7 +10,7 @@
         <TextView android:layout_width="wrap_content"
             android:id="@+id/person_name"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.personName}"
+            android:text="@{requestVM.person.fullNameOrMe(context)}"
             android:textColor="@{requestVM.enabled ? (requestVM.accepted ? @android:color/holo_green_light : (requestVM.rejected ? @android:color/holo_red_light : @android:color/black)) : @android:color/darker_gray}"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"

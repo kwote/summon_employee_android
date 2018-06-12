@@ -2,9 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data class="SummonActivityBinding">
-        <variable name="incoming" type="boolean"/>
-        <variable name="person" type="employee.summon.asano.model.Person"/>
-        <variable name="request" type="employee.summon.asano.model.SummonRequest"/>
+        <variable name="request" type="employee.summon.asano.viewmodel.SummonRequestVM"/>
         <import type="android.view.View" alias="v"/>
     </data>
 <android.support.constraint.ConstraintLayout
@@ -27,7 +25,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/fullname"
         android:layout_height="wrap_content"
-        android:text='@{person.fullName}'
+        android:text='@{request.person.fullName}'
         android:textStyle="bold"
         android:textSize="@dimen/name_size"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -36,7 +34,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/email"
         android:layout_height="wrap_content"
-        android:text="@{person.email}"
+        android:text="@{request.person.email}"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
@@ -44,7 +42,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/phone_view"
         android:layout_height="wrap_content"
-        android:text="@{person.phone}"
+        android:text="@{request.person.phone}"
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
@@ -59,7 +57,7 @@
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_accept"
         android:enabled="@{request.pending}"
-        android:visibility="@{incoming ? v.VISIBLE : v.GONE}"
+        android:visibility="@{request.incoming ? v.VISIBLE : v.GONE}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <Button
@@ -72,7 +70,7 @@
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_reject"
         android:enabled="@{request.pending}"
-        android:visibility="@{incoming ? v.VISIBLE : v.GONE}"
+        android:visibility="@{request.incoming ? v.VISIBLE : v.GONE}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"/>
     <Button
@@ -81,7 +79,7 @@
         android:layout_height="wrap_content"
         android:text="@android:string/cancel"
         android:enabled="@{request.enabled}"
-        android:visibility="@{!incoming ? v.VISIBLE : v.GONE}"
+        android:visibility="@{!request.incoming ? v.VISIBLE : v.GONE}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"/>
