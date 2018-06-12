@@ -41,7 +41,7 @@ class PersonActivity : Activity() {
             getLastOutgoingSummonRequests(app.user.id, person.id, 3)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
-                        val active = it.filter { it.pending }
+                        val active = it.filter { it.pending && it.enabled }
                         if (active.isEmpty()) {
                             makeSummonButton()
                         } else {
@@ -68,10 +68,9 @@ class PersonActivity : Activity() {
 
     private fun makeSummonButton() {
         summon_fab.setImageResource(R.drawable.horn)
-        summon_fab.setOnClickListener({ _ ->
-            val now = Calendar.getInstance().time.getStringTimeStampWithDate()
+        summon_fab.setOnClickListener({
             val accessToken = app.accessToken
-            val addRequest = AddSummonRequest(app.user.id, person.id, now)
+            val addRequest = AddSummonRequest(app.user.id, person.id)
             val service = app.getService<SummonRequestService>()
             service.addSummonRequest(addRequest, accessToken)
                     .observeOn(AndroidSchedulers.mainThread())

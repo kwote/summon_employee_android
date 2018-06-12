@@ -22,6 +22,7 @@ import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequestMessage
 import employee.summon.asano.rest.PeopleService
+import java.net.URLEncoder
 
 
 class RequestListenerService : Service() {
@@ -29,7 +30,7 @@ class RequestListenerService : Service() {
         return null
     }
 
-    private var accessToken: AccessToken? = null
+    private lateinit var accessToken: AccessToken
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -39,8 +40,15 @@ class RequestListenerService : Service() {
                 ACTION_LISTEN_REQUEST -> {
                     if (intent.hasExtra(App.ACCESS_TOKEN)) {
                         accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
+                        val headers = mutableMapOf("Authorization" to accessToken.id)
+                        eventSource = EventSource.Builder(
+                                getString(R.string.base_url) + REQUEST_URL_SUFFIX +
+                                        URLEncoder.encode(String.format(REQUEST_URL_ESC_SUFFIX, accessToken.userId), "UTF-8"))
+                                .headers(headers)
+                                .eventHandler(requestHandler)
+                                .build()
+                        eventSource.connect()
                     }
-                    eventSource.connect()
                 }
                 ACTION_CLOSE_CONNECTION -> {
                     closeConnection()
@@ -84,7 +92,9 @@ class RequestListenerService : Service() {
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0)
 
-        val notification = getNotificationBuilder(this, "employee.summon.asano.CHANNEL_ID_FOREGROUND", NotificationManagerCompat.IMPORTANCE_LOW)
+        val notification = getNotificationBuilder(this,
+                "employee.summon.asano.CHANNEL_ID_FOREGROUND",
+                NotificationManagerCompat.IMPORTANCE_LOW)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_message))
                 .setSmallIcon(R.drawable.person_icon)
@@ -110,11 +120,7 @@ class RequestListenerService : Service() {
 
     private var requestHandler: RequestHandler? = RequestHandler()
 
-    private val eventSource: EventSource by lazy {
-        EventSource.Builder(getString(R.string.base_url) + REQUEST_URL_SUFFIX)
-                .eventHandler(requestHandler)
-                .build()
-    }
+    private lateinit var eventSource: EventSource
 
     private val builder = Moshi.Builder().build()
 
@@ -132,7 +138,7 @@ class RequestListenerService : Service() {
             Log.v("SSE Message: ", message.data)
             val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
             val request = adapter.fromJson(message.data) ?: return
-            if (request.data.targetId == accessToken?.userId) {
+            if (request.data.targetId == accessToken.userId) {
                 if (request.data.enabled && request.data.pending) {
                     val callerId = request.data.callerId
                     val app = this@RequestListenerService.applicationContext as App
@@ -151,7 +157,7 @@ class RequestListenerService : Service() {
                 } else if (!request.data.enabled) {
                     Toast.makeText(this@RequestListenerService, R.string.request_canceled, Toast.LENGTH_LONG).show()
                 }
-            } else if (request.data.callerId == accessToken?.userId) {
+            } else if (request.data.callerId == accessToken.userId) {
                 when (request.data.state) {
                     RequestStatus.Accepted.code ->
                         Toast.makeText(this@RequestListenerService, R.string.request_accepted, Toast.LENGTH_LONG).show()
@@ -171,7 +177,8 @@ class RequestListenerService : Service() {
     }
 
     companion object {
-        private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream/"
+        private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream?options="
+        private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"callerId\":%d}}"
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         private const val WAKELOCK_TAG = "SumEmpWakelockTag"
