@@ -19,6 +19,7 @@ import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.viewmodel.SummonRequestVM
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -191,18 +192,26 @@ class MainActivity : AppCompatActivity() {
     private fun reloadPeople() {
         val service = app.getService<PeopleService>()
         service.listPeople(app.accessToken)
+                .flatMapIterable { p -> p }
+                .flatMap({p->
+                    service.canSummon(p.id, app.accessToken)
+                        .filter { it }
+                        .flatMap {
+                            Observable.just(p)
+                        }
+                })
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ people->
+                .toList()
+                .subscribe({people->
                     recycler_view.adapter = PersonAdapter(people, { p ->
                         if (p != null) {
                             summonPerson(p)
                         }
                     })
+                    refresher.isRefreshing = false
                 }, {
                     refresher.isRefreshing = false
                     Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
-                }, {
-                    refresher.isRefreshing = false
                 })
                 .addTo(disposable)
     }

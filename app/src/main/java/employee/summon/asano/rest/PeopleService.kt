@@ -9,6 +9,9 @@ interface PeopleService {
     @PUT("people/ping")
     fun ping(@Header("Authorization") accessToken: String): Observable<Boolean>
 
+    @GET("people/canSummon")
+    fun canSummon(@Query("targetId") targetId: Int, @Header("Authorization") accessToken: String): Observable<Boolean>
+
     @GET("people")
     fun listPeople(@Header("Authorization") accessToken: String): Observable<List<Person>>
 
