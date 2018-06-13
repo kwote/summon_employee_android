@@ -19,7 +19,7 @@ interface PeopleService {
     fun addPerson(@Body person: AddPerson): Observable<Person>
 
     @POST("people/login")
-    fun login(@Body credentials: LoginCredentials, @Query("include") obj: String = "user"): Observable<AccessToken>
+    fun login(@Body credentials: LoginCredentials, @Query("include") user: String = "user"): Observable<AccessToken>
 
     @POST("people/logout")
     fun logout(@Header("Authorization") accessToken: String): Observable<ResponseBody>
@@ -27,12 +27,14 @@ interface PeopleService {
     @GET("people/{id}/incomingRequests")
     fun listIncomingRequests(
             @Path("id") targetId: Int, @Header("Authorization") accessToken: String,
-            @Query("filter[include]") obj: String = "caller"
+            @Query("filter[include]") person: String = "caller",
+            @Query(value = "filter[order]", encoded = true) order: String = "requested DESC"
     ): Observable<List<SummonRequest>>
 
     @GET("people/{id}/outgoingRequests")
     fun listOutgoingRequests(
             @Path("id") callerId: Int, @Header("Authorization") accessToken: String,
-            @Query("filter[include]") obj: String = "target"
+            @Query("filter[include]") person: String = "target",
+            @Query(value = "filter[order]", encoded = true) order: String = "requested DESC"
     ): Observable<List<SummonRequest>>
 }

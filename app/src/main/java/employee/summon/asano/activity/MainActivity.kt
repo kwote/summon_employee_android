@@ -93,13 +93,16 @@ class MainActivity : AppCompatActivity() {
             }
             showProgress(true)
             val pingObs = ping(accessToken.id).observeOn(AndroidSchedulers.mainThread())
-            pingObs.filter { it }.subscribe({
-                showProgress(false)
-                prepare(accessToken)
+            pingObs.subscribe({
+                if (it) {
+                    showProgress(false)
+                    prepare(accessToken)
+                } else {
+                    login()
+                }
             }, {
                 login()
             }).addTo(disposable)
-            pingObs.filter { !it }.subscribe { login() }.addTo(disposable)
         }
         recycler_view.layoutManager = LinearLayoutManager(this)
 

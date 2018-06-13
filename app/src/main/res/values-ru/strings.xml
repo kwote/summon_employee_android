@@ -42,4 +42,11 @@
     <string name="request_reject_failed">Не удалось отклонить вызов</string>
     <string name="request_cancel_failed">Не удалось отменить вызов</string>
     <string name="me">Я</string>
+    <string name="reload_failed">Не удалось загрузить</string>
+    <string name="request_accepted">Вызов принят</string>
+    <string name="request_rejected">Вызов отклонён</string>
+    <string name="request_canceled">Вызов отменён</string>
+    <string name="ticker_text">Соединение</string>
+    <string name="notification_message">Соединение установлено</string>
+    <string name="notification_title">Соединение</string>
 </resources>
