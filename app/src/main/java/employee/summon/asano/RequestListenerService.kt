@@ -16,12 +16,10 @@ import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
-import employee.summon.asano.activity.PersonActivity
 import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequestMessage
-import employee.summon.asano.rest.PeopleService
 import java.net.URLEncoder
 
 
@@ -43,7 +41,9 @@ class RequestListenerService : Service() {
                         val headers = mutableMapOf("Authorization" to accessToken.id)
                         eventSource = EventSource.Builder(
                                 getString(R.string.base_url) + REQUEST_URL_SUFFIX +
-                                        URLEncoder.encode(String.format(REQUEST_URL_ESC_SUFFIX, accessToken.userId), "UTF-8"))
+                                        URLEncoder.encode(String.format(
+                                                REQUEST_URL_ESC_SUFFIX, accessToken.userId, accessToken.userId
+                                        ), "UTF-8"))
                                 .headers(headers)
                                 .eventHandler(requestHandler)
                                 .build()
@@ -137,20 +137,21 @@ class RequestListenerService : Service() {
             Log.v("SSE Message", event)
             Log.v("SSE Message: ", message.data)
             val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
-            val request = adapter.fromJson(message.data) ?: return
-            if (request.data.targetId == accessToken.userId) {
-                if (request.data.enabled && request.data.pending) {
+            val requestMessage = adapter.fromJson(message.data) ?: return
+            val request = requestMessage.request()
+            if (request.targetId == accessToken.userId) {
+                if (requestMessage.type == "create") {
                     val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
                     launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
                     launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
-                    launchIntent.putExtra(App.REQUEST, request.data)
+                    launchIntent.putExtra(App.REQUEST, request)
                     this@RequestListenerService.startActivity(launchIntent)
-                } else if (!request.data.enabled) {
+                } else if (!request.enabled) {
                     Toast.makeText(this@RequestListenerService, R.string.request_canceled, Toast.LENGTH_LONG).show()
                 }
-            } else if (request.data.callerId == accessToken.userId) {
-                when (request.data.state) {
+            } else if (request.callerId == accessToken.userId) {
+                when (request.state) {
                     RequestStatus.Accepted.code ->
                         Toast.makeText(this@RequestListenerService, R.string.request_accepted, Toast.LENGTH_LONG).show()
                     RequestStatus.Rejected.code ->
@@ -170,7 +171,7 @@ class RequestListenerService : Service() {
 
     companion object {
         private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream?options="
-        private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"targetId\":%d}}"
+        private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"or\":[{\"targetId\":%d},{\"callerId\":%d}]}}"
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         private const val WAKELOCK_TAG = "SumEmpWakelockTag"

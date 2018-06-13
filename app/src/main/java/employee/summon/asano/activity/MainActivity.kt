@@ -192,8 +192,8 @@ class MainActivity : AppCompatActivity() {
     private fun reloadPeople() {
         val service = app.getService<PeopleService>()
         service.listPeople(app.accessToken)
-                .flatMapIterable { p -> p }
-                .flatMap({p->
+                .concatMapIterable { p -> p }
+                .concatMap({p->
                     service.canSummon(p.id, app.accessToken)
                         .filter { it }
                         .flatMap {
