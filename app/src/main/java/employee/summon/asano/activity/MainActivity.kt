@@ -174,10 +174,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun performLogout() {
         val service = app.getService<PeopleService>()
-        service.logout(app.accessToken).subscribe {
+        service.logout(app.accessToken).subscribe({}, {}, {
             RequestListenerService.cancelActionListenRequest(this@MainActivity)
             login()
-        }.addTo(disposable)
+        }).addTo(disposable)
     }
 
     private fun login() {

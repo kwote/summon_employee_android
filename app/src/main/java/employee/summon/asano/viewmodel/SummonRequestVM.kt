@@ -7,6 +7,8 @@ import employee.summon.asano.model.SummonRequest
 data class SummonRequestVM(val request: SummonRequest, val incoming: Boolean) {
     val pending = request.pending
     val enabled = request.enabled
+    val canRespond = incoming && request.pending && request.enabled
+    val canDisable = !incoming && request.enabled
     val person : PersonVM?
         get() {
             val person = if (incoming) request.caller else request.target

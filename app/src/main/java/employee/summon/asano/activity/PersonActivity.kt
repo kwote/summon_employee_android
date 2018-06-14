@@ -59,10 +59,14 @@ class PersonActivity : Activity() {
         RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update->
             if (pendingRequest?.id == update.request.id) {
                 when (update.request.state) {
-                    SummonRequest.RequestStatus.Accepted.code ->
+                    SummonRequest.RequestStatus.Accepted.code ->{
+                        makeSummonButton()
                         Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
-                    SummonRequest.RequestStatus.Rejected.code ->
+                    }
+                    SummonRequest.RequestStatus.Rejected.code -> {
+                        makeSummonButton()
                         Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
+                    }
                 }
             }
         }.addTo(disposable)

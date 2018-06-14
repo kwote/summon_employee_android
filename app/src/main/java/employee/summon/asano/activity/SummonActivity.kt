@@ -27,7 +27,7 @@ class SummonActivity : AppCompatActivity() {
         const val IS_WAKEFUL = "is_wakeful"
     }
 
-    private lateinit var request: SummonRequest
+    private lateinit var requestVM: SummonRequestVM
 
     private var isWakeful: Boolean = false
 
@@ -37,10 +37,10 @@ class SummonActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = DataBindingUtil.setContentView<SummonActivityBinding>(this, R.layout.activity_summon)
 
-        request = intent.getParcelableExtra(REQUEST)
+        val request: SummonRequest = intent.getParcelableExtra(REQUEST)
         val isIncoming = intent.getBooleanExtra(IS_INCOMING, true)
-        val requestVM = SummonRequestVM(request, isIncoming)
-        binding.request = requestVM
+        requestVM = SummonRequestVM(request, isIncoming)
+        binding.requestVM = requestVM
         isWakeful = intent.getBooleanExtra(IS_WAKEFUL, false)
         if (isWakeful) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -62,7 +62,7 @@ class SummonActivity : AppCompatActivity() {
                 r?.stop()
                 r = null
             }
-            acceptRequest(this.request)
+            acceptRequest(this.requestVM.request)
                     .subscribe({
                         if (!isWakeful)
                             Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
@@ -76,7 +76,7 @@ class SummonActivity : AppCompatActivity() {
                 r?.stop()
                 r = null
             }
-            rejectRequest(this.request)
+            rejectRequest(this.requestVM.request)
                     .subscribe({
                         if (!isWakeful)
                             Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
@@ -86,7 +86,7 @@ class SummonActivity : AppCompatActivity() {
                     }).addTo(disposable)
         }
         cancel_request.setOnClickListener {
-            cancelRequest(this.request)
+            cancelRequest(this.requestVM.request)
                     .subscribe({
                         Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
                     }, {
@@ -94,9 +94,20 @@ class SummonActivity : AppCompatActivity() {
                     }).addTo(disposable)
         }
         RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
-            if (update.type == SummonRequestUpdate.UpdateType.Cancel && request.id == update.request.id) {
-                Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_SHORT).show()
-                finish()
+            if (request.id == update.request.id) {
+                requestVM = SummonRequestVM(update.request, requestVM.incoming)
+                binding.requestVM = requestVM
+                binding.executePendingBindings()
+                when (update.type) {
+                    SummonRequestUpdate.UpdateType.Cancel ->
+                        if (isWakeful)
+                            Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_SHORT).show()
+                        else finish()
+                    SummonRequestUpdate.UpdateType.Accept ->
+                        Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
+                    SummonRequestUpdate.UpdateType.Reject ->
+                        Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
+                }
             }
         }.addTo(disposable)
     }
