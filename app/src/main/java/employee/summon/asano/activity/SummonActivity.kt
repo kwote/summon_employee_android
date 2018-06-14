@@ -10,13 +10,11 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.WindowManager
-import employee.summon.asano.AndroidDisposable
-import employee.summon.asano.App
+import employee.summon.asano.*
 import employee.summon.asano.App.Companion.REQUEST
-import employee.summon.asano.R
-import employee.summon.asano.addTo
 import employee.summon.asano.databinding.SummonActivityBinding
 import employee.summon.asano.model.SummonRequest
+import employee.summon.asano.model.SummonRequestUpdate
 import employee.summon.asano.rest.SummonRequestService
 import employee.summon.asano.viewmodel.SummonRequestVM
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -59,7 +57,7 @@ class SummonActivity : AppCompatActivity() {
             r = RingtoneManager.getRingtone(applicationContext, notification)
             r?.play()
         }
-        accept_request.setOnClickListener({
+        accept_request.setOnClickListener {
             if (isWakeful) {
                 r?.stop()
                 r = null
@@ -72,8 +70,8 @@ class SummonActivity : AppCompatActivity() {
                     }, {
                         Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
-        })
-        reject_request.setOnClickListener({
+        }
+        reject_request.setOnClickListener {
             if (isWakeful) {
                 r?.stop()
                 r = null
@@ -86,15 +84,21 @@ class SummonActivity : AppCompatActivity() {
                     }, {
                         Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
-        })
-        cancel_request.setOnClickListener({
+        }
+        cancel_request.setOnClickListener {
             cancelRequest(this.request)
                     .subscribe({
                         Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
                     }, {
                         Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
-        })
+        }
+        RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
+            if (update.type == SummonRequestUpdate.UpdateType.Cancel && request.id == update.request.id) {
+                Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_SHORT).show()
+                finish()
+            }
+        }.addTo(disposable)
     }
 
     override fun onResume() {

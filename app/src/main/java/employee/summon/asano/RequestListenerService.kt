@@ -10,7 +10,6 @@ import android.os.PowerManager
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
-import android.widget.Toast
 import com.squareup.moshi.Moshi
 import com.tylerjroach.eventsource.EventSource
 import com.tylerjroach.eventsource.EventSourceHandler
@@ -18,8 +17,9 @@ import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
 import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.AccessToken
-import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequestMessage
+import employee.summon.asano.model.SummonRequestUpdate
+import io.reactivex.subjects.PublishSubject
 import java.net.URLEncoder
 
 
@@ -114,11 +114,10 @@ class RequestListenerService : Service() {
 
     private fun closeConnection() {
         eventSource.close()
-        requestHandler = null
         stopForeground(true)
     }
 
-    private var requestHandler: RequestHandler? = RequestHandler()
+    private var requestHandler = RequestHandler()
 
     private lateinit var eventSource: EventSource
 
@@ -134,28 +133,31 @@ class RequestListenerService : Service() {
         }
 
         override fun onMessage(event: String?, message: MessageEvent) {
-            Log.v("SSE Message", event)
+            Log.v("SSE", event)
             Log.v("SSE Message: ", message.data)
             val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
             val requestMessage = adapter.fromJson(message.data) ?: return
             val request = requestMessage.request()
             if (request.targetId == accessToken.userId) {
-                if (requestMessage.type == "create") {
-                    val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
-                    launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
-                    launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
-                    launchIntent.putExtra(App.REQUEST, request)
-                    this@RequestListenerService.startActivity(launchIntent)
-                } else if (!request.enabled) {
-                    Toast.makeText(this@RequestListenerService, R.string.request_canceled, Toast.LENGTH_LONG).show()
+                when (requestMessage.type) {
+                    "create" -> {
+                        val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
+                        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
+                        launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
+                        launchIntent.putExtra(App.REQUEST, request)
+                        this@RequestListenerService.startActivity(launchIntent)
+                    }
+                    "cancel" -> {
+                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Cancel))
+                    }
                 }
             } else if (request.callerId == accessToken.userId) {
-                when (request.state) {
-                    RequestStatus.Accepted.code ->
-                        Toast.makeText(this@RequestListenerService, R.string.request_accepted, Toast.LENGTH_LONG).show()
-                    RequestStatus.Rejected.code ->
-                        Toast.makeText(this@RequestListenerService, R.string.request_rejected, Toast.LENGTH_LONG).show()
+                when (requestMessage.type) {
+                    "accept" ->
+                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
+                    "reject" ->
+                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Reject))
                 }
             }
         }
@@ -170,6 +172,8 @@ class RequestListenerService : Service() {
     }
 
     companion object {
+        val requestUpdateBus: PublishSubject<SummonRequestUpdate> = PublishSubject.create()
+
         private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream?options="
         private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"or\":[{\"targetId\":%d},{\"callerId\":%d}]}}"
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"

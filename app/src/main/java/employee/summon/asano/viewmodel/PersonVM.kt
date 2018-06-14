@@ -6,7 +6,7 @@ import employee.summon.asano.App
 import employee.summon.asano.R
 import employee.summon.asano.model.Person
 
-class PersonVM(var person: Person) {
+data class PersonVM(var person: Person) {
     val fullName
         get() = person.firstname +
                 (if (!TextUtils.isEmpty(person.patronymic)) " ${person.patronymic}" else "") +

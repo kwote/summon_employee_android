@@ -2,7 +2,6 @@ package employee.summon.asano.viewmodel
 
 import android.text.format.DateUtils
 import employee.summon.asano.getDateWithServerTimeStamp
-import employee.summon.asano.model.RequestStatus
 import employee.summon.asano.model.SummonRequest
 
 data class SummonRequestVM(val request: SummonRequest, val incoming: Boolean) {
@@ -21,6 +20,6 @@ data class SummonRequestVM(val request: SummonRequest, val incoming: Boolean) {
     val responded = request.responded?.getDateWithServerTimeStamp()?.time?.let {
             DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
         }
-    val accepted = request.state == RequestStatus.Accepted.code
-    val rejected = request.state == RequestStatus.Rejected.code
+    val accepted = request.state == SummonRequest.RequestStatus.Accepted.code
+    val rejected = request.state == SummonRequest.RequestStatus.Rejected.code
 }

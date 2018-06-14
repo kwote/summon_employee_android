@@ -193,21 +193,21 @@ class MainActivity : AppCompatActivity() {
         val service = app.getService<PeopleService>()
         service.listPeople(app.accessToken)
                 .concatMapIterable { p -> p }
-                .concatMap({p->
+                .concatMap { p->
                     service.canSummon(p.id, app.accessToken)
-                        .filter { it }
-                        .flatMap {
-                            Observable.just(p)
-                        }
-                })
+                            .filter { it }
+                            .flatMap {
+                                Observable.just(p)
+                            }
+                }
                 .observeOn(AndroidSchedulers.mainThread())
                 .toList()
                 .subscribe({people->
-                    recycler_view.adapter = PersonAdapter(people, { p ->
+                    recycler_view.adapter = PersonAdapter(people) { p ->
                         if (p != null) {
                             summonPerson(p)
                         }
-                    })
+                    }
                     refresher.isRefreshing = false
                 }, {
                     refresher.isRefreshing = false
@@ -229,7 +229,7 @@ class MainActivity : AppCompatActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         {requestsVM->
-                            recycler_view.adapter = SummonRequestAdapter(requestsVM, {request-> openSummonRequest(request) })
+                            recycler_view.adapter = SummonRequestAdapter(requestsVM) { request-> openSummonRequest(request) }
                         },
                         {
                             Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
