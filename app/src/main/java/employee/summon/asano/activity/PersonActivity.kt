@@ -84,7 +84,7 @@ class PersonActivity : Activity() {
     }
 
     private fun makeSummonButton() {
-        summon_fab.setImageResource(R.drawable.horn)
+        summon_fab.setImageResource(R.drawable.baseline_add_circle_24)
         summon_fab.setOnClickListener {
             val app = App.getApp(this)
             val accessToken = app.accessToken
@@ -103,7 +103,7 @@ class PersonActivity : Activity() {
     }
 
     private fun makeCancelButton() {
-        summon_fab.setImageResource(R.drawable.cancel)
+        summon_fab.setImageResource(R.drawable.baseline_remove_circle_24)
         summon_fab.setOnClickListener { _ ->
             val service = App.getApp(this).getService<SummonRequestService>()
             pendingRequest?.id?.let { requestId ->
