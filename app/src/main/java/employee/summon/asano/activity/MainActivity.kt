@@ -230,12 +230,11 @@ class MainActivity : AppCompatActivity() {
                 .subscribe(
                         {requestsVM->
                             recycler_view.adapter = SummonRequestAdapter(requestsVM) { request-> openSummonRequest(request) }
-                        },
-                        {
-                            Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
+                            refresher.isRefreshing = false
                         },
                         {
                             refresher.isRefreshing = false
+                            Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
                         })
                 .addTo(disposable)
     }
