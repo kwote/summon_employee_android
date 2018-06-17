@@ -3,6 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data class="SummonActivityBinding">
         <variable name="requestVM" type="employee.summon.asano.viewmodel.SummonRequestVM"/>
+        <variable
+            name="handlers"
+            type="employee.summon.asano.activity.SummonActivity.ClickHandlers"/>
         <import type="android.view.View" alias="v"/>
     </data>
 <android.support.constraint.ConstraintLayout
@@ -17,6 +20,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
+        android:onClick="@{handlers::person}"
         android:contentDescription="@string/employee_photo"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
@@ -58,6 +62,7 @@
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_accept"
         android:visibility="@{requestVM.canRespond ? v.VISIBLE : v.GONE}"
+        android:onClick="@{handlers::accept}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <Button
@@ -70,6 +75,7 @@
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_reject"
         android:visibility="@{requestVM.canRespond ? v.VISIBLE : v.GONE}"
+        android:onClick="@{handlers::reject}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"/>
     <Button
@@ -78,6 +84,7 @@
         android:layout_height="wrap_content"
         android:text="@android:string/cancel"
         android:visibility="@{requestVM.canDisable ? v.VISIBLE : v.GONE}"
+        android:onClick="@{handlers::cancel}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"/>

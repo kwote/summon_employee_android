@@ -2,6 +2,7 @@ package employee.summon.asano.activity
 
 import android.app.KeyguardManager
 import android.content.Context
+import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.media.Ringtone
 import android.media.RingtoneManager
@@ -9,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.view.View
 import android.view.WindowManager
 import employee.summon.asano.*
 import employee.summon.asano.App.Companion.REQUEST
@@ -28,6 +30,52 @@ class SummonActivity : AppCompatActivity() {
     }
 
     private lateinit var requestVM: SummonRequestVM
+    private val handlers = ClickHandlers(this)
+
+    inner class ClickHandlers(var context: Context) {
+        fun accept(v: View) {
+            if (isWakeful) {
+                r?.stop()
+                r = null
+            }
+            acceptRequest(requestVM.request)
+                    .subscribe({
+                        if (!isWakeful)
+                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
+                        else finish()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
+        }
+
+        fun reject(v: View) {
+            if (isWakeful) {
+                r?.stop()
+                r = null
+            }
+            rejectRequest(requestVM.request)
+                    .subscribe({
+                        if (!isWakeful)
+                            Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
+                        else finish()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
+        }
+        fun cancel(v: View) {
+            cancelRequest(requestVM.request)
+                    .subscribe({
+                        Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
+        }
+        fun person(v: View) {
+            val intent = Intent(this@SummonActivity, PersonActivity::class.java)
+            intent.putExtra(PersonActivity.PERSON, requestVM.person?.person)
+            startActivity(intent)
+        }
+    }
 
     private var isWakeful: Boolean = false
 
@@ -41,6 +89,7 @@ class SummonActivity : AppCompatActivity() {
         val isIncoming = intent.getBooleanExtra(IS_INCOMING, true)
         requestVM = SummonRequestVM(request, isIncoming)
         binding.requestVM = requestVM
+        binding.handlers = handlers
         isWakeful = intent.getBooleanExtra(IS_WAKEFUL, false)
         if (isWakeful) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -56,42 +105,6 @@ class SummonActivity : AppCompatActivity() {
             val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
             r = RingtoneManager.getRingtone(applicationContext, notification)
             r?.play()
-        }
-        accept_request.setOnClickListener {
-            if (isWakeful) {
-                r?.stop()
-                r = null
-            }
-            acceptRequest(this.requestVM.request)
-                    .subscribe({
-                        if (!isWakeful)
-                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
-                        else finish()
-                    }, {
-                        Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
-                    }).addTo(disposable)
-        }
-        reject_request.setOnClickListener {
-            if (isWakeful) {
-                r?.stop()
-                r = null
-            }
-            rejectRequest(this.requestVM.request)
-                    .subscribe({
-                        if (!isWakeful)
-                            Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
-                        else finish()
-                    }, {
-                        Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
-                    }).addTo(disposable)
-        }
-        cancel_request.setOnClickListener {
-            cancelRequest(this.requestVM.request)
-                    .subscribe({
-                        Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
-                    }, {
-                        Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
-                    }).addTo(disposable)
         }
         RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
             if (request.id == update.request.id) {

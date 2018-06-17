@@ -19,7 +19,6 @@ import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.viewmodel.SummonRequestVM
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -69,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         startActivity(launchIntent)
     }
 
-    private fun summonPerson(person: Person) {
+    private fun openPerson(person: Person) {
         val intent = Intent(this, PersonActivity::class.java)
         intent.putExtra(PersonActivity.PERSON, person)
         startActivity(intent)
@@ -189,23 +188,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun ping(accessToken: String) = app.getService<PeopleService>().ping(accessToken)
 
-    private fun reloadPeople() {
-        val service = app.getService<PeopleService>()
-        service.listPeople(app.accessToken)
-                .concatMapIterable { p -> p }
-                .concatMap { p->
-                    service.canSummon(p.id, app.accessToken)
-                            .filter { it }
-                            .flatMap {
-                                Observable.just(p)
-                            }
-                }
+    private fun reloadPeople() =
+        app.getService<PeopleService>()
+                .listSummonPeople(app.accessToken)
                 .observeOn(AndroidSchedulers.mainThread())
-                .toList()
                 .subscribe({people->
                     recycler_view.adapter = PersonAdapter(people) { p ->
                         if (p != null) {
-                            summonPerson(p)
+                            openPerson(p)
                         }
                     }
                     refresher.isRefreshing = false
@@ -214,7 +204,6 @@ class MainActivity : AppCompatActivity() {
                     Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
                 })
                 .addTo(disposable)
-    }
 
     private fun reloadRequests(incoming: Boolean) {
         val peopleService = app.getService<PeopleService>()
