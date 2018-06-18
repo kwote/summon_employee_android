@@ -1,6 +1,7 @@
 package employee.summon.asano.activity
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.net.Uri
@@ -13,14 +14,16 @@ import employee.summon.asano.model.AddSummonRequest
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.rest.SummonRequestService
+import employee.summon.asano.viewmodel.PendingRequestVM
 import employee.summon.asano.viewmodel.PersonVM
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_person.*
 
 class PersonActivity : Activity() {
-    private lateinit var person: Person
-    private var pendingRequest: SummonRequest? = null
+    private lateinit var personVM: PersonVM
+    private lateinit var pendingRequest: PendingRequestVM
+    private val handlers = ClickHandlers(this)
 
     private val disposable = AndroidDisposable()
 
@@ -28,48 +31,55 @@ class PersonActivity : Activity() {
         super.onCreate(savedInstanceState)
         val binding = DataBindingUtil.setContentView<PersonActivityBinding>(this, R.layout.activity_person)
 
-        person = intent.getParcelableExtra(PERSON)
-        binding.person = PersonVM(person)
+        val person = intent.getParcelableExtra<Person>(PERSON)
+        pendingRequest = PendingRequestVM()
+        personVM = PersonVM(person)
+        binding.person = personVM
+        binding.request = pendingRequest
+        binding.handlers = handlers
 
-        call_fab.setOnClickListener { _ ->
-            val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", person.phone, null))
-            startActivity(intent)
-        }
-
-        val userId = App.getApp(this).user.id
-        if (userId != person.id) {
-            getLastOutgoingSummonRequests(userId, person.id, 3)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        val active = it.filter { it.pending && it.enabled }
-                        if (active.isEmpty()) {
-                            makeSummonButton()
-                        } else {
-                            pendingRequest = active[0]
-                            makeCancelButton()
-                        }
-                    }, {
-                        makeSummonButton()
-                        Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
-                    }).addTo(disposable)
-        } else {
-            call_fab.visibility = View.GONE
-            summon_fab.visibility = View.GONE
-        }
+        getPendingRequest()
         RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update->
-            if (pendingRequest?.id == update.request.id) {
+            if (pendingRequest.request?.id == update.request.id) {
                 when (update.request.state) {
-                    SummonRequest.RequestStatus.Accepted.code ->{
-                        makeSummonButton()
+                    SummonRequest.RequestStatus.Accepted.code -> {
+                        getPendingRequest()
                         Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
                     }
                     SummonRequest.RequestStatus.Rejected.code -> {
-                        makeSummonButton()
+                        pendingRequest.request = update.request
+                        getPendingRequest()
                         Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
                     }
                 }
             }
         }.addTo(disposable)
+    }
+
+    private fun getPendingRequest() {
+        if (!personVM.isMe(this)) {
+            getLastOutgoingSummonRequests(
+                    App.getApp(this).user.id,
+                    personVM.person.id, 3)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe({
+                        val active = it.filter { it.pending && it.enabled }
+                        pendingRequest.request = if (active.isEmpty()) {
+                            null
+                        } else {
+                            active[0]
+                        }
+                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(summon_fab)
+                        binding?.request = pendingRequest
+                        binding?.executePendingBindings()
+                    }, {
+                        pendingRequest.request = null
+                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(summon_fab)
+                        binding?.request = pendingRequest
+                        binding?.executePendingBindings()
+                        Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
+                    }).addTo(disposable)
+        }
     }
 
     override fun onDestroy() {
@@ -83,43 +93,43 @@ class PersonActivity : Activity() {
                 .listOutgoingRequests(callerId, targetId, count, app.accessToken)
     }
 
-    private fun makeSummonButton() {
-        summon_fab.setImageResource(R.drawable.baseline_add_circle_24)
-        summon_fab.setOnClickListener {
-            val app = App.getApp(this)
+    companion object {
+        const val PERSON = "person"
+    }
+    inner class ClickHandlers(var context: Context) {
+        fun summon(v: View) {
+            val app = App.getApp(this@PersonActivity)
             val accessToken = app.accessToken
-            val addRequest = AddSummonRequest(app.user.id, person.id)
+            val addRequest = AddSummonRequest(app.user.id, personVM.person.id)
             val service = app.getService<SummonRequestService>()
             service.addSummonRequest(addRequest, accessToken)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({request->
-                        pendingRequest = request
-                        makeCancelButton()
+                        pendingRequest.request = request
+                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(v)
+                        binding?.request = pendingRequest
+                        binding?.executePendingBindings()
                         Snackbar.make(phone_view, R.string.summon_succeeded, Snackbar.LENGTH_SHORT).show()
                     }, {
                         Snackbar.make(phone_view, R.string.summon_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
         }
-    }
-
-    private fun makeCancelButton() {
-        summon_fab.setImageResource(R.drawable.baseline_remove_circle_24)
-        summon_fab.setOnClickListener { _ ->
-            val service = App.getApp(this).getService<SummonRequestService>()
-            pendingRequest?.id?.let { requestId ->
-                service.cancelRequest(requestId, App.getApp(this).accessToken)
+        fun cancel(v: View) {
+            val service = App.getApp(this@PersonActivity).getService<SummonRequestService>()
+            pendingRequest.request?.id?.let { requestId ->
+                service.cancelRequest(requestId, App.getApp(this@PersonActivity).accessToken)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
-                            makeSummonButton()
+                            getPendingRequest()
                             Snackbar.make(phone_view, R.string.cancel_successful, Snackbar.LENGTH_SHORT).show()
                         }, {
                             Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()
                         })
             }
         }
-    }
-
-    companion object {
-        const val PERSON = "person"
+        fun dial(v: View) {
+            val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", personVM.person.phone, null))
+            startActivity(intent)
+        }
     }
 }

@@ -14,8 +14,9 @@ data class PersonVM(var person: Person) {
     val post = person.post
     val email = person.email
     val phone = person.phone
+    fun isMe(context: Context): Boolean = App.getApp(context).user.id == person.id
     fun fullNameOrMe(context: Context): CharSequence? =
-        if (App.getApp(context).user.id == person.id) {
+        if (isMe(context)) {
             context.getString(R.string.me)
         } else fullName
 }

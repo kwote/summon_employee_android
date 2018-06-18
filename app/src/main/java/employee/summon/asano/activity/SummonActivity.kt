@@ -109,8 +109,9 @@ class SummonActivity : AppCompatActivity() {
         RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
             if (request.id == update.request.id) {
                 requestVM = SummonRequestVM(update.request, requestVM.incoming)
-                binding.requestVM = requestVM
-                binding.executePendingBindings()
+                val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
+                binding?.requestVM = requestVM
+                binding?.executePendingBindings()
                 when (update.type) {
                     SummonRequestUpdate.UpdateType.Cancel ->
                         if (isWakeful)

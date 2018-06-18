@@ -3,6 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data class="PersonActivityBinding">
         <variable name="person" type="employee.summon.asano.viewmodel.PersonVM"/>
+        <variable name="request" type="employee.summon.asano.viewmodel.PendingRequestVM"/>
+        <variable
+            name="handlers"
+            type="employee.summon.asano.activity.PersonActivity.ClickHandlers"/>
+        <import type="android.view.View" alias="v"/>
     </data>
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
@@ -63,16 +68,30 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:srcCompat="@drawable/baseline_add_circle_24"
-            android:enabled="false"
+            android:onClick="@{handlers::summon}"
+            android:visibility="@{request.showSummon() ? v.VISIBLE : v.GONE}"
             app:rippleColor="#aabbff"
             android:layout_margin="16dp" />
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/call_fab"
+            android:id="@+id/cancel_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@drawable/baseline_remove_circle_24"
+            android:onClick="@{handlers::cancel}"
+            android:visibility="@{request.showCancel() ? v.VISIBLE : v.GONE}"
+            app:rippleColor="#aabbff"
+            android:layout_margin="16dp" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/dial_fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:srcCompat="@drawable/baseline_dialpad_24"
+            android:onClick="@{handlers::dial}"
+            android:visibility="@{person.isMe(context) ? v.GONE : v.VISIBLE}"
             android:enabled="@{person.phone != null}"
             app:rippleColor="#aabbff"
             android:layout_margin="16dp" />
