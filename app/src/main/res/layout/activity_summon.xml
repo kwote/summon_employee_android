@@ -7,11 +7,12 @@
             name="handlers"
             type="employee.summon.asano.activity.SummonActivity.ClickHandlers"/>
         <import type="android.view.View" alias="v"/>
+        <import type="android.support.v4.content.ContextCompat" />
     </data>
 <android.support.constraint.ConstraintLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@{requestVM.enabled ? (requestVM.accepted ? @android:color/holo_green_light : (requestVM.rejected ? @android:color/holo_red_light : @android:color/white)) : @android:color/darker_gray}">
+    android:background="@{ContextCompat.getColor(context, requestVM.background())}">
     <ImageView
         android:id="@+id/user_photo"
         android:layout_width="wrap_content"
@@ -30,7 +31,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/fullname"
         android:layout_height="wrap_content"
-        android:text='@{requestVM.person.fullName}'
+        android:text='@{requestVM.person.fullName()}'
         android:textStyle="bold"
         android:textSize="@dimen/name_size"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -39,7 +40,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/email"
         android:layout_height="wrap_content"
-        android:text="@{requestVM.person.email}"
+        android:text="@{requestVM.person.email()}"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
@@ -47,7 +48,7 @@
     <TextView android:layout_width="wrap_content"
         android:id="@id/phone_view"
         android:layout_height="wrap_content"
-        android:text="@{requestVM.person.phone}"
+        android:text="@{requestVM.person.phone()}"
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
@@ -61,7 +62,7 @@
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_accept"
-        android:visibility="@{requestVM.canRespond ? v.VISIBLE : v.GONE}"
+        android:visibility="@{requestVM.canRespond() ? v.VISIBLE : v.GONE}"
         android:onClick="@{handlers::accept}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintLeft_toLeftOf="parent"/>
@@ -74,7 +75,7 @@
         android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_marginEnd="@dimen/activity_horizontal_margin"
         android:text="@string/action_reject"
-        android:visibility="@{requestVM.canRespond ? v.VISIBLE : v.GONE}"
+        android:visibility="@{requestVM.canRespond() ? v.VISIBLE : v.GONE}"
         android:onClick="@{handlers::reject}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"/>
@@ -83,7 +84,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@android:string/cancel"
-        android:visibility="@{requestVM.canDisable ? v.VISIBLE : v.GONE}"
+        android:visibility="@{requestVM.canDisable() ? v.VISIBLE : v.GONE}"
         android:onClick="@{handlers::cancel}"
         app:layout_constraintTop_toBottomOf="@id/email"
         app:layout_constraintRight_toRightOf="parent"

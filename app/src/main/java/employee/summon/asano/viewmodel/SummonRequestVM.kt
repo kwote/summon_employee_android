@@ -4,24 +4,42 @@ import android.text.format.DateUtils
 import employee.summon.asano.getDateWithServerTimeStamp
 import employee.summon.asano.model.SummonRequest
 
-data class SummonRequestVM(val request: SummonRequest, val incoming: Boolean) {
-    val pending = request.pending
-    val enabled = request.enabled
-    val canRespond = incoming && request.pending && request.enabled
-    val canDisable = !incoming && request.enabled
-    val person : PersonVM?
-        get() {
-            val person = if (incoming) request.caller else request.target
-            if (person != null)
-                return PersonVM(person)
-            return null
+class SummonRequestVM(var req: SummonRequest, var incoming: Boolean) {
+    fun pending() = request.pending
+    fun enabled() = request.enabled
+    fun canRespond() = incoming && request.pending && request.enabled
+    fun canDisable() = !incoming && request.enabled
+    private fun person(): PersonVM? {
+        val person = if (incoming) request.caller else request.target
+        if (person != null)
+            return PersonVM(person)
+        return null
+    }
+    var request: SummonRequest
+        get() = req
+        set (value) {
+            req = value
+            person = person()
         }
-    val requested = request.requested.getDateWithServerTimeStamp()?.time?.let {
-            DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
-        }
-    val responded = request.responded?.getDateWithServerTimeStamp()?.time?.let {
-            DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
-        }
-    val accepted = request.state == SummonRequest.RequestStatus.Accepted.code
-    val rejected = request.state == SummonRequest.RequestStatus.Rejected.code
+    var person: PersonVM? = person()
+
+    fun requested() = request.requested.getDateWithServerTimeStamp()?.time?.let {
+        DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+    }
+
+    fun responded() = request.responded?.getDateWithServerTimeStamp()?.time?.let {
+        DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
+    }
+
+    fun accepted() = request.state == SummonRequest.RequestState.Accepted.code
+    fun rejected() = request.state == SummonRequest.RequestState.Rejected.code
+
+    fun background() =
+            if (enabled()) {
+                when {
+                    accepted() -> android.R.color.holo_green_light
+                    rejected() -> android.R.color.holo_red_light
+                    else -> android.R.color.white
+                }
+            } else android.R.color.darker_gray
 }

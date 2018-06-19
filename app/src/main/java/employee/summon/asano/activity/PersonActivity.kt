@@ -39,15 +39,14 @@ class PersonActivity : Activity() {
         binding.handlers = handlers
 
         getPendingRequest()
-        RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update->
+        RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
             if (pendingRequest.request?.id == update.request.id) {
                 when (update.request.state) {
-                    SummonRequest.RequestStatus.Accepted.code -> {
+                    SummonRequest.RequestState.Accepted.code -> {
                         getPendingRequest()
                         Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
                     }
-                    SummonRequest.RequestStatus.Rejected.code -> {
-                        pendingRequest.request = update.request
+                    SummonRequest.RequestState.Rejected.code -> {
                         getPendingRequest()
                         Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
                     }
@@ -96,6 +95,7 @@ class PersonActivity : Activity() {
     companion object {
         const val PERSON = "person"
     }
+
     inner class ClickHandlers(var context: Context) {
         fun summon(v: View) {
             val app = App.getApp(this@PersonActivity)
@@ -104,7 +104,7 @@ class PersonActivity : Activity() {
             val service = app.getService<SummonRequestService>()
             service.addSummonRequest(addRequest, accessToken)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({request->
+                    .subscribe({ request ->
                         pendingRequest.request = request
                         val binding = DataBindingUtil.findBinding<PersonActivityBinding>(v)
                         binding?.request = pendingRequest
@@ -114,9 +114,10 @@ class PersonActivity : Activity() {
                         Snackbar.make(phone_view, R.string.summon_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
         }
+
         fun cancel(v: View) {
-            val service = App.getApp(this@PersonActivity).getService<SummonRequestService>()
             pendingRequest.request?.id?.let { requestId ->
+                val service = App.getApp(this@PersonActivity).getService<SummonRequestService>()
                 service.cancelRequest(requestId, App.getApp(this@PersonActivity).accessToken)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
@@ -127,6 +128,7 @@ class PersonActivity : Activity() {
                         })
             }
         }
+
         fun dial(v: View) {
             val intent = Intent(Intent.ACTION_DIAL, Uri.fromParts("tel", personVM.person.phone, null))
             startActivity(intent)

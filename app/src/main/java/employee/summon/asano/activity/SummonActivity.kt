@@ -32,51 +32,6 @@ class SummonActivity : AppCompatActivity() {
     private lateinit var requestVM: SummonRequestVM
     private val handlers = ClickHandlers(this)
 
-    inner class ClickHandlers(var context: Context) {
-        fun accept(v: View) {
-            if (isWakeful) {
-                r?.stop()
-                r = null
-            }
-            acceptRequest(requestVM.request)
-                    .subscribe({
-                        if (!isWakeful)
-                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
-                        else finish()
-                    }, {
-                        Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
-                    }).addTo(disposable)
-        }
-
-        fun reject(v: View) {
-            if (isWakeful) {
-                r?.stop()
-                r = null
-            }
-            rejectRequest(requestVM.request)
-                    .subscribe({
-                        if (!isWakeful)
-                            Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
-                        else finish()
-                    }, {
-                        Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
-                    }).addTo(disposable)
-        }
-        fun cancel(v: View) {
-            cancelRequest(requestVM.request)
-                    .subscribe({
-                        Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
-                    }, {
-                        Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
-                    }).addTo(disposable)
-        }
-        fun person(v: View) {
-            val intent = Intent(this@SummonActivity, PersonActivity::class.java)
-            intent.putExtra(PersonActivity.PERSON, requestVM.person?.person)
-            startActivity(intent)
-        }
-    }
-
     private var isWakeful: Boolean = false
 
     private var r: Ringtone? = null
@@ -108,7 +63,7 @@ class SummonActivity : AppCompatActivity() {
         }
         RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
             if (request.id == update.request.id) {
-                requestVM = SummonRequestVM(update.request, requestVM.incoming)
+                requestVM.request = update.request
                 val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
                 binding?.requestVM = requestVM
                 binding?.executePendingBindings()
@@ -160,4 +115,61 @@ class SummonActivity : AppCompatActivity() {
             App.getApp(this).getService<SummonRequestService>()
                     .cancelRequest(request.id, App.getApp(this).accessToken)
                     .observeOn(AndroidSchedulers.mainThread())
+
+    inner class ClickHandlers(var context: Context) {
+        fun accept(v: View) {
+            if (isWakeful) {
+                r?.stop()
+                r = null
+            }
+            acceptRequest(requestVM.request)
+                    .subscribe({
+                        requestVM.request = requestVM.request.acceptedRequest()
+                        val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
+                        binding?.requestVM = requestVM
+                        binding?.executePendingBindings()
+                        if (!isWakeful)
+                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
+                        else finish()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
+        }
+
+        fun reject(v: View) {
+            if (isWakeful) {
+                r?.stop()
+                r = null
+            }
+            rejectRequest(requestVM.request)
+                    .subscribe({
+                        requestVM.request = requestVM.request.rejectedRequest()
+                        val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
+                        binding?.requestVM = requestVM
+                        binding?.executePendingBindings()
+                        if (!isWakeful)
+                            Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
+                        else finish()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
+        }
+        fun cancel(v: View) {
+            cancelRequest(requestVM.request)
+                    .subscribe({
+                        requestVM.request = requestVM.request.canceledRequest()
+                        val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
+                        binding?.requestVM = requestVM
+                        binding?.executePendingBindings()
+                        Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
+                    }, {
+                        Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
+                    }).addTo(disposable)
+        }
+        fun person(v: View) {
+            val intent = Intent(this@SummonActivity, PersonActivity::class.java)
+            intent.putExtra(PersonActivity.PERSON, requestVM.person?.person)
+            startActivity(intent)
+        }
+    }
 }

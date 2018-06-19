@@ -10,6 +10,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import employee.summon.asano.*
@@ -119,8 +120,14 @@ class MainActivity : AppCompatActivity() {
         reload()
     }
 
+    private var logout : MenuItem? = null
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
+        logout = menu.findItem(R.id.logout)
+        if (isLoading) {
+            logout?.isEnabled = false
+        }
         return true
     }
 
@@ -131,8 +138,12 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private fun showProgress(progress: Boolean) {
+    private var isLoading = false
 
+    private fun showProgress(progress: Boolean) {
+        isLoading = progress
+        navigation.visibility = if (progress) View.GONE else View.VISIBLE
+        logout?.isEnabled = !progress
     }
 
     private fun reload() {
@@ -173,10 +184,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun performLogout() {
         val service = app.getService<PeopleService>()
-        service.logout(app.accessToken).subscribe({}, {}, {
+        service.logout(app.accessToken).subscribe {
             RequestListenerService.cancelActionListenRequest(this@MainActivity)
             login()
-        }).addTo(disposable)
+        }.addTo(disposable)
     }
 
     private fun login() {

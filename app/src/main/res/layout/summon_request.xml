@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable name="requestVM" type="employee.summon.asano.viewmodel.SummonRequestVM"/>
+        <import type="android.support.v4.content.ContextCompat" />
     </data>
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
@@ -11,19 +12,19 @@
             android:id="@+id/person_name"
             android:layout_height="wrap_content"
             android:text="@{requestVM.person.fullNameOrMe(context)}"
-            android:textColor="@{requestVM.enabled ? (requestVM.accepted ? @android:color/holo_green_light : (requestVM.rejected ? @android:color/holo_red_light : @android:color/black)) : @android:color/darker_gray}"
+            android:textColor="@{ContextCompat.getColor(context, requestVM.background())}"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/summon_time"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.requested}"
+            android:text="@{requestVM.requested()}"
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/response_time"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.responded}"
+            android:text="@{requestVM.responded()}"
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
