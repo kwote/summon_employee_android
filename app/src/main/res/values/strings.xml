@@ -38,7 +38,6 @@
     <string name="prompt_post">Post</string>
     <string name="notification_title">Connection</string>
     <string name="notification_message">Connection is active</string>
-    <string name="ticker_text">Connection</string>
     <string name="request_accepted">Request accepted</string>
     <string name="request_rejected">Request rejected</string>
     <string name="request_canceled">Request canceled</string>
@@ -51,4 +50,5 @@
     <string name="request_reject_failed">Failed to reject request</string>
     <string name="request_cancel_failed">Failed to cancel request</string>
     <string name="me">Me</string>
+    <string name="connection">Connection</string>
 </resources>

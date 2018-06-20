@@ -42,4 +42,13 @@ class SummonRequestVM(var req: SummonRequest, var incoming: Boolean) {
                     else -> android.R.color.white
                 }
             } else android.R.color.darker_gray
+
+    fun textColor() =
+            if (enabled()) {
+                when {
+                    accepted() -> android.R.color.holo_green_light
+                    rejected() -> android.R.color.holo_red_light
+                    else -> android.R.color.black
+                }
+            } else android.R.color.darker_gray
 }

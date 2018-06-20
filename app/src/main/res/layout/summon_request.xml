@@ -12,7 +12,7 @@
             android:id="@+id/person_name"
             android:layout_height="wrap_content"
             android:text="@{requestVM.person.fullNameOrMe(context)}"
-            android:textColor="@{ContextCompat.getColor(context, requestVM.background())}"
+            android:textColor="@{ContextCompat.getColor(context, requestVM.textColor())}"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/summon_time"

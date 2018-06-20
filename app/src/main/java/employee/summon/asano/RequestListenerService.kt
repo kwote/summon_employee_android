@@ -16,7 +16,6 @@ import com.tylerjroach.eventsource.EventSourceHandler
 import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
 import employee.summon.asano.activity.SummonActivity
-import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.SummonRequestMessage
 import employee.summon.asano.model.SummonRequestUpdate
 import io.reactivex.subjects.PublishSubject
@@ -28,7 +27,8 @@ class RequestListenerService : Service() {
         return null
     }
 
-    private lateinit var accessToken: AccessToken
+    private lateinit var accessToken: String
+    private var userId: Int = 0
 
     private var wakeLock: PowerManager.WakeLock? = null
 
@@ -37,12 +37,13 @@ class RequestListenerService : Service() {
             when (intent.action) {
                 ACTION_LISTEN_REQUEST -> {
                     if (intent.hasExtra(App.ACCESS_TOKEN)) {
-                        accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
-                        val headers = mutableMapOf("Authorization" to accessToken.id)
+                        accessToken = intent.getStringExtra(App.ACCESS_TOKEN)
+                        userId = intent.getIntExtra(USER_ID_EXTRA, 0)
+                        val headers = mutableMapOf("Authorization" to accessToken)
                         eventSource = EventSource.Builder(
                                 getString(R.string.base_url) + REQUEST_URL_SUFFIX +
                                         URLEncoder.encode(String.format(
-                                                REQUEST_URL_ESC_SUFFIX, accessToken.userId, accessToken.userId
+                                                REQUEST_URL_ESC_SUFFIX, userId, userId
                                         ), "UTF-8"))
                                 .headers(headers)
                                 .eventHandler(requestHandler)
@@ -99,7 +100,7 @@ class RequestListenerService : Service() {
                 .setContentText(getText(R.string.notification_message))
                 .setSmallIcon(R.drawable.person_icon)
                 .setContentIntent(pendingIntent)
-                .setTicker(getText(R.string.ticker_text))
+                .setTicker(getText(R.string.connection))
                 .setOngoing(true)
                 .build()
 
@@ -138,7 +139,7 @@ class RequestListenerService : Service() {
             val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
             val requestMessage = adapter.fromJson(message.data) ?: return
             val request = requestMessage.request()
-            if (request.targetId == accessToken.userId) {
+            if (request.targetId == userId) {
                 when (requestMessage.type) {
                     "create" -> {
                         val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
@@ -152,7 +153,7 @@ class RequestListenerService : Service() {
                         requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Cancel))
                     }
                 }
-            } else if (request.callerId == accessToken.userId) {
+            } else if (request.callerId == userId) {
                 when (requestMessage.type) {
                     "accept" ->
                         requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
@@ -178,6 +179,7 @@ class RequestListenerService : Service() {
         private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"or\":[{\"targetId\":%d},{\"callerId\":%d}]}}"
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
+        private const val USER_ID_EXTRA = "user_id_extra"
         private const val WAKELOCK_TAG = "SumEmpWakelockTag"
         const val ONGOING_NOTIFICATION_ID = 1
         /**
@@ -187,11 +189,12 @@ class RequestListenerService : Service() {
          * @see IntentService
          */
         @JvmStatic
-        fun startActionListenRequest(context: Context, accessToken: AccessToken) {
+        fun startActionListenRequest(context: Context, accessToken: String, userId: Int) {
             val intent = Intent(context, RequestListenerService::class.java).apply {
                 action = ACTION_LISTEN_REQUEST
             }
             intent.putExtra(App.ACCESS_TOKEN, accessToken)
+            intent.putExtra(USER_ID_EXTRA, userId)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
             } else {

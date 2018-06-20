@@ -46,7 +46,7 @@
     <string name="request_accepted">Вызов принят</string>
     <string name="request_rejected">Вызов отклонён</string>
     <string name="request_canceled">Вызов отменён</string>
-    <string name="ticker_text">Соединение</string>
     <string name="notification_message">Соединение установлено</string>
     <string name="notification_title">Соединение</string>
+    <string name="connection">Соединение</string>
 </resources>

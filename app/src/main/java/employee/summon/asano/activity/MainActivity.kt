@@ -2,6 +2,7 @@ package employee.summon.asano.activity
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.Snackbar
@@ -75,9 +76,6 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private val app: App
-        get() = application as App
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -85,19 +83,22 @@ class MainActivity : AppCompatActivity() {
         val accessToken: AccessToken?
         if (intent.hasExtra(App.ACCESS_TOKEN)) {
             accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
+            initialized = true
             prepare(accessToken)
+            reload()
         } else {
             accessToken = readAccessToken()
             if (accessToken == null) {
                 login()
                 return
             }
-            showProgress(true)
+            initialized = false
             val pingObs = ping(accessToken.id).observeOn(AndroidSchedulers.mainThread())
             pingObs.subscribe({
                 if (it) {
-                    showProgress(false)
+                    initialized = true
                     prepare(accessToken)
+                    reload()
                 } else {
                     login()
                 }
@@ -114,39 +115,78 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun prepare(accessToken: AccessToken) {
-        RequestListenerService.startActionListenRequest(this@MainActivity, accessToken)
-        saveAccessToken(accessToken)
+    override fun onResume() {
+        super.onResume()
         reload()
     }
 
-    private var logout : MenuItem? = null
+    private fun prepare(accessToken: AccessToken) {
+        if (!listening) {
+            RequestListenerService.startActionListenRequest(this, accessToken.id, accessToken.userId)
+            listening = true
+        }
+        saveAccessToken(accessToken)
+    }
+
+    private var logout: MenuItem? = null
+    private var toggleConnection: MenuItem? = null
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
         logout = menu.findItem(R.id.logout)
-        if (isLoading) {
+        toggleConnection = menu.findItem(R.id.connection)
+        if (!initialized) {
             logout?.isEnabled = false
+            toggleConnection?.isEnabled = false
         }
+        updateConnectionIcon()
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.logout -> performLogout()
+            R.id.connection -> toggleConnection()
         }
         return super.onOptionsItemSelected(item)
     }
 
-    private var isLoading = false
+    private var listening = false
 
-    private fun showProgress(progress: Boolean) {
-        isLoading = progress
-        navigation.visibility = if (progress) View.GONE else View.VISIBLE
-        logout?.isEnabled = !progress
+    private fun toggleConnection() {
+        if (!listening) {
+            val app = App.getApp(this)
+            val accessToken = app.accessToken
+            val userId = app.user.id
+            RequestListenerService.startActionListenRequest(this, accessToken, userId)
+        } else {
+            RequestListenerService.cancelActionListenRequest(this)
+        }
+
+        updateConnectionIcon()
+        listening = !listening
     }
 
+    private fun updateConnectionIcon() {
+        val resId = if (listening) R.drawable.baseline_offline_bolt_24 else R.drawable.baseline_block_24
+        val drawable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getDrawable(resId)
+        } else {
+            resources.getDrawable(resId)
+        }
+        toggleConnection?.icon = drawable
+    }
+
+    private var initialized = false
+        set (value) {
+            field = value
+            navigation.visibility = if (value) View.VISIBLE else View.GONE
+            logout?.isEnabled = value
+            toggleConnection?.isEnabled = value
+        }
+
     private fun reload() {
+        if (!initialized) return
         if (!refresher.isRefreshing) {
             refresher.isRefreshing = true
         }
@@ -158,6 +198,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveAccessToken(accessToken: AccessToken) {
+        val app = App.getApp(this)
         app.accessToken = accessToken.id
         app.user = accessToken.user
         val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
@@ -183,27 +224,29 @@ class MainActivity : AppCompatActivity() {
     private val disposable = AndroidDisposable()
 
     private fun performLogout() {
+        val app = App.getApp(this)
         val service = app.getService<PeopleService>()
+        RequestListenerService.cancelActionListenRequest(this)
         service.logout(app.accessToken).subscribe {
-            RequestListenerService.cancelActionListenRequest(this@MainActivity)
             login()
         }.addTo(disposable)
     }
 
     private fun login() {
-        val intent = Intent(this@MainActivity, LoginActivity::class.java)
+        val intent = Intent(this, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
         startActivity(intent)
         finish()
     }
 
-    private fun ping(accessToken: String) = app.getService<PeopleService>().ping(accessToken)
+    private fun ping(accessToken: String) = App.getApp(this).getService<PeopleService>().ping(accessToken)
 
-    private fun reloadPeople() =
+    private fun reloadPeople() {
+        val app = App.getApp(this)
         app.getService<PeopleService>()
                 .listSummonPeople(app.accessToken)
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({people->
+                .subscribe({ people ->
                     recycler_view.adapter = PersonAdapter(people) { p ->
                         if (p != null) {
                             openPerson(p)
@@ -215,21 +258,25 @@ class MainActivity : AppCompatActivity() {
                     Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
                 })
                 .addTo(disposable)
+    }
 
     private fun reloadRequests(incoming: Boolean) {
+        val app = App.getApp(this)
         val peopleService = app.getService<PeopleService>()
         val accessToken = app.accessToken
         (if (incoming)
             peopleService.listIncomingRequests(app.user.id, accessToken)
         else
             peopleService.listOutgoingRequests(app.user.id, accessToken))
-                .map {requests->
-                    return@map requests.map {request-> SummonRequestVM(request, incoming) }
+                .map { requests ->
+                    return@map requests.map { request -> SummonRequestVM(request, incoming) }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        {requestsVM->
-                            recycler_view.adapter = SummonRequestAdapter(requestsVM) { request-> openSummonRequest(request) }
+                        { requestsVM ->
+                            recycler_view.adapter = SummonRequestAdapter(requestsVM) { request ->
+                                openSummonRequest(request)
+                            }
                             refresher.isRefreshing = false
                         },
                         {
