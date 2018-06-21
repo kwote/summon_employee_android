@@ -8,6 +8,7 @@ import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.SearchView
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
@@ -15,11 +16,13 @@ import android.view.View
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import employee.summon.asano.*
-import employee.summon.asano.adapter.PersonAdapter
-import employee.summon.asano.adapter.SummonRequestAdapter
+import employee.summon.asano.adapter.FilterableAdapter
+import employee.summon.asano.adapter.PeopleAdapter
+import employee.summon.asano.adapter.SummonRequestsAdapter
 import employee.summon.asano.model.AccessToken
 import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
+import employee.summon.asano.viewmodel.PersonVM
 import employee.summon.asano.viewmodel.SummonRequestVM
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_main.*
@@ -135,6 +138,19 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.main, menu)
         logout = menu.findItem(R.id.logout)
         toggleConnection = menu.findItem(R.id.connection)
+        val searchView = menu.findItem(R.id.search).actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (recycler_view.adapter is FilterableAdapter) {
+                    (recycler_view.adapter as FilterableAdapter).filter.filter(newText)
+                }
+                return true
+            }
+        })
         if (!initialized) {
             logout?.isEnabled = false
             toggleConnection?.isEnabled = false
@@ -245,12 +261,13 @@ class MainActivity : AppCompatActivity() {
         val app = App.getApp(this)
         app.getService<PeopleService>()
                 .listSummonPeople(app.accessToken)
+                .map { people ->
+                    return@map people.map { PersonVM(it) }
+                }
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ people ->
-                    recycler_view.adapter = PersonAdapter(people) { p ->
-                        if (p != null) {
-                            openPerson(p)
-                        }
+                    recycler_view.adapter = PeopleAdapter(people) { p ->
+                        p?.person?.let { openPerson(it) }
                     }
                     refresher.isRefreshing = false
                 }, {
@@ -274,8 +291,8 @@ class MainActivity : AppCompatActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         { requestsVM ->
-                            recycler_view.adapter = SummonRequestAdapter(requestsVM) { request ->
-                                openSummonRequest(request)
+                            recycler_view.adapter = SummonRequestsAdapter(requestsVM) { request ->
+                                request?.let { openSummonRequest(it) }
                             }
                             refresher.isRefreshing = false
                         },

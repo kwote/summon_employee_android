@@ -11,12 +11,14 @@ import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-import employee.summon.asano.*
+import employee.summon.asano.AndroidDisposable
+import employee.summon.asano.App
+import employee.summon.asano.R
+import employee.summon.asano.addTo
 import employee.summon.asano.model.AddPerson
 import employee.summon.asano.rest.PeopleService
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_register.*
-import java.util.*
 import java.util.regex.Pattern
 
 /**
@@ -133,8 +135,7 @@ class RegisterActivity : AppCompatActivity() {
             // perform the user register attempt.
             showProgress(true)
             val service = App.getApp(this).getService<PeopleService>()
-            val now = Calendar.getInstance().time.getStringTimeStampWithDate()
-            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password, now)
+            val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password)
             service.addPerson(addPerson)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(

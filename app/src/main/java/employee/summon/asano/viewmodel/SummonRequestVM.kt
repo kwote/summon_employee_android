@@ -15,6 +15,7 @@ class SummonRequestVM(var req: SummonRequest, var incoming: Boolean) {
             return PersonVM(person)
         return null
     }
+
     var request: SummonRequest
         get() = req
         set (value) {

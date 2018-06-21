@@ -5,12 +5,11 @@ import employee.summon.asano.databinding.SummonRequestBinding
 import employee.summon.asano.viewmodel.SummonRequestVM
 
 
-class RequestViewHolder(private val binding: SummonRequestBinding, private val click: (r: SummonRequestVM)->Unit) :
+class RequestViewHolder(private val binding: SummonRequestBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
     fun bind(requestVM: SummonRequestVM) {
-        binding.requestVM = requestVM
-        binding.root.setOnClickListener { click(requestVM) }
+        binding.request = requestVM
         binding.executePendingBindings()
     }
 }

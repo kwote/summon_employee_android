@@ -49,4 +49,5 @@
     <string name="notification_message">Соединение установлено</string>
     <string name="notification_title">Соединение</string>
     <string name="connection">Соединение</string>
+    <string name="search_title">Поиск</string>
 </resources>

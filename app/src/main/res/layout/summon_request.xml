@@ -2,29 +2,33 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="requestVM" type="employee.summon.asano.viewmodel.SummonRequestVM"/>
+        <variable name="request" type="employee.summon.asano.viewmodel.SummonRequestVM"/>
+        <variable
+            name="handlers"
+            type="employee.summon.asano.adapter.SummonRequestsAdapter.ClickHandlers"/>
         <import type="android.support.v4.content.ContextCompat" />
     </data>
     <android.support.constraint.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:onClick="@{handlers::clickAction}">
         <TextView android:layout_width="wrap_content"
             android:id="@+id/person_name"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.person.fullNameOrMe(context)}"
-            android:textColor="@{ContextCompat.getColor(context, requestVM.textColor())}"
+            android:text="@{request.person.fullNameOrMe(context)}"
+            android:textColor="@{ContextCompat.getColor(context, request.textColor())}"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/summon_time"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.requested()}"
+            android:text="@{request.requested()}"
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/response_time"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.responded()}"
+            android:text="@{request.responded()}"
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>

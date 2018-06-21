@@ -98,7 +98,7 @@ class RequestListenerService : Service() {
                 NotificationManagerCompat.IMPORTANCE_LOW)
                 .setContentTitle(getText(R.string.notification_title))
                 .setContentText(getText(R.string.notification_message))
-                .setSmallIcon(R.drawable.person_icon)
+                .setSmallIcon(R.drawable.baseline_dialpad_24)
                 .setContentIntent(pendingIntent)
                 .setTicker(getText(R.string.connection))
                 .setOngoing(true)
