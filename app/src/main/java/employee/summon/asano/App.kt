@@ -2,7 +2,6 @@ package employee.summon.asano
 
 import android.app.Application
 import android.content.Context
-
 import employee.summon.asano.model.Person
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory

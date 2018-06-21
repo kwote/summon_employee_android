@@ -52,4 +52,6 @@
     <string name="me">Me</string>
     <string name="connection">Connection</string>
     <string name="search_title">Search</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
 </resources>

@@ -2,7 +2,6 @@ package employee.summon.asano.activity
 
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.BottomNavigationView
 import android.support.design.widget.Snackbar
@@ -127,17 +126,21 @@ class MainActivity : AppCompatActivity() {
         if (!listening) {
             RequestListenerService.startActionListenRequest(this, accessToken.id, accessToken.userId)
             listening = true
+            connect?.isVisible = false
+            disconnect?.isVisible = true
         }
         saveAccessToken(accessToken)
     }
 
     private var logout: MenuItem? = null
-    private var toggleConnection: MenuItem? = null
+    private var connect: MenuItem? = null
+    private var disconnect: MenuItem? = null
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
         logout = menu.findItem(R.id.logout)
-        toggleConnection = menu.findItem(R.id.connection)
+        connect = menu.findItem(R.id.connect)
+        disconnect = menu.findItem(R.id.disconnect)
         val searchView = menu.findItem(R.id.search).actionView as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -153,23 +156,25 @@ class MainActivity : AppCompatActivity() {
         })
         if (!initialized) {
             logout?.isEnabled = false
-            toggleConnection?.isEnabled = false
+            connect?.isEnabled = false
+            disconnect?.isEnabled = false
         }
-        updateConnectionIcon()
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             R.id.logout -> performLogout()
-            R.id.connection -> toggleConnection()
+            R.id.connect -> toggleConnection(true)
+            R.id.disconnect -> toggleConnection(false)
         }
         return super.onOptionsItemSelected(item)
     }
 
     private var listening = false
 
-    private fun toggleConnection() {
+    private fun toggleConnection(toggle: Boolean) {
+        if (toggle == listening) return
         if (!listening) {
             val app = App.getApp(this)
             val accessToken = app.accessToken
@@ -178,19 +183,10 @@ class MainActivity : AppCompatActivity() {
         } else {
             RequestListenerService.cancelActionListenRequest(this)
         }
+        connect?.isVisible = !toggle
+        disconnect?.isVisible = toggle
 
-        updateConnectionIcon()
-        listening = !listening
-    }
-
-    private fun updateConnectionIcon() {
-        val resId = if (listening) R.drawable.baseline_offline_bolt_24 else R.drawable.baseline_block_24
-        val drawable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getDrawable(resId)
-        } else {
-            resources.getDrawable(resId)
-        }
-        toggleConnection?.icon = drawable
+        listening = toggle
     }
 
     private var initialized = false
@@ -198,7 +194,8 @@ class MainActivity : AppCompatActivity() {
             field = value
             navigation.visibility = if (value) View.VISIBLE else View.GONE
             logout?.isEnabled = value
-            toggleConnection?.isEnabled = value
+            connect?.isEnabled = value
+            disconnect?.isEnabled = value
         }
 
     private fun reload() {
