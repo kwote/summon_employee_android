@@ -102,13 +102,12 @@ class LoginActivity : AppCompatActivity() {
             // form field with an error.
             focusView!!.requestFocus()
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true)
             val peopleService = App.getApp(this).getService<PeopleService>()
             val credentials = LoginCredentials(emailStr, passwordStr)
             peopleService.login(credentials)
                     .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSubscribe { showProgress(true) }
+                    .doFinally { showProgress(false) }
                     .subscribe({
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
@@ -117,7 +116,6 @@ class LoginActivity : AppCompatActivity() {
                         finish()
                     }, {
                         Snackbar.make(email_login, R.string.connection_failed, Snackbar.LENGTH_LONG).show()
-                        showProgress(false)
                     }).addTo(disposable)
         }
     }

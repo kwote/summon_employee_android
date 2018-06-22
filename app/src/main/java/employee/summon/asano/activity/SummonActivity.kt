@@ -124,7 +124,7 @@ class SummonActivity : AppCompatActivity() {
             }
             acceptRequest(requestVM.request)
                     .subscribe({
-                        requestVM.request = requestVM.request.acceptedRequest()
+                        requestVM.accept()
                         val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
                         binding?.requestVM = requestVM
                         binding?.executePendingBindings()
@@ -143,7 +143,7 @@ class SummonActivity : AppCompatActivity() {
             }
             rejectRequest(requestVM.request)
                     .subscribe({
-                        requestVM.request = requestVM.request.rejectedRequest()
+                        requestVM.reject()
                         val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
                         binding?.requestVM = requestVM
                         binding?.executePendingBindings()
@@ -154,10 +154,11 @@ class SummonActivity : AppCompatActivity() {
                         Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
         }
+
         fun cancel(v: View) {
             cancelRequest(requestVM.request)
                     .subscribe({
-                        requestVM.request = requestVM.request.canceledRequest()
+                        requestVM.cancel()
                         val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
                         binding?.requestVM = requestVM
                         binding?.executePendingBindings()
@@ -166,6 +167,7 @@ class SummonActivity : AppCompatActivity() {
                         Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
         }
+
         fun person(v: View) {
             val intent = Intent(this@SummonActivity, PersonActivity::class.java)
             intent.putExtra(PersonActivity.PERSON, requestVM.person?.person)

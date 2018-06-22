@@ -1,12 +1,12 @@
 package employee.summon.asano.activity
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
+import android.support.v7.app.AppCompatActivity
 import android.view.View
 import employee.summon.asano.*
 import employee.summon.asano.databinding.PersonActivityBinding
@@ -20,7 +20,7 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_person.*
 
-class PersonActivity : Activity() {
+class PersonActivity : AppCompatActivity() {
     private lateinit var personVM: PersonVM
     private lateinit var pendingRequest: PendingRequestVM
     private val handlers = ClickHandlers(this)

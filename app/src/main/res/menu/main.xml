@@ -10,13 +10,13 @@
     <item
         android:id="@+id/connect"
         android:title="@string/connect"
-        android:icon="@drawable/baseline_offline_bolt_24"
+        android:icon="@drawable/baseline_sync_24"
         app:showAsAction="ifRoom">
     </item>
     <item
         android:id="@+id/disconnect"
         android:title="@string/disconnect"
-        android:icon="@drawable/baseline_block_24"
+        android:icon="@drawable/baseline_sync_disabled_24"
         android:visible="false"
         app:showAsAction="ifRoom">
     </item>

@@ -2,6 +2,7 @@ package employee.summon.asano
 
 import android.app.Application
 import android.content.Context
+import android.support.v7.app.AppCompatDelegate
 import employee.summon.asano.model.Person
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -10,6 +11,10 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 class App : Application() {
     lateinit var accessToken: String
     lateinit var user: Person
+
+    init {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
+    }
 
     val retrofit: Retrofit by lazy {
         Retrofit.Builder()

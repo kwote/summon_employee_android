@@ -32,8 +32,8 @@ class SummonRequestVM(var req: SummonRequest, var incoming: Boolean) {
         DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS)
     }
 
-    fun accepted() = request.state == SummonRequest.RequestState.Accepted.code
-    fun rejected() = request.state == SummonRequest.RequestState.Rejected.code
+    private fun accepted() = request.state == SummonRequest.RequestState.Accepted.code
+    private fun rejected() = request.state == SummonRequest.RequestState.Rejected.code
 
     fun background() =
             if (enabled()) {
@@ -52,4 +52,16 @@ class SummonRequestVM(var req: SummonRequest, var incoming: Boolean) {
                     else -> android.R.color.black
                 }
             } else android.R.color.darker_gray
+
+    fun accept() {
+        request = request.acceptedRequest()
+    }
+
+    fun reject() {
+        request = request.rejectedRequest()
+    }
+
+    fun cancel() {
+        request = request.canceledRequest()
+    }
 }

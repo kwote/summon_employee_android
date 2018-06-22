@@ -129,27 +129,26 @@ class RegisterActivity : AppCompatActivity() {
         if (cancel) {
             // There was an error; don't attempt register and focus the first
             // form field with an error.
-            focusView!!.requestFocus()
+            focusView?.requestFocus()
         } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user register attempt.
-            showProgress(true)
             val service = App.getApp(this).getService<PeopleService>()
             val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password)
             service.addPerson(addPerson)
                     .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSubscribe { showProgress(true) }
+                    .doFinally { showProgress(false) }
                     .subscribe(
                             {
                                 val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
                                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
                                 startActivity(intent)
                                 finish()
-                            }, {
-                        password_register.error = getString(R.string.error_incorrect_password)
-                        password_register.requestFocus()
-                    }, {
-                        showProgress(false)
-                    }).addTo(disposable)
+                            },
+                            {
+                                password_register.error = getString(R.string.error_incorrect_password)
+                                password_register.requestFocus()
+                            })
+                    .addTo(disposable)
         }
     }
 

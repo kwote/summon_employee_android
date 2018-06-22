@@ -95,18 +95,7 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             initialized = false
-            val pingObs = ping(accessToken.id).observeOn(AndroidSchedulers.mainThread())
-            pingObs.subscribe({
-                if (it) {
-                    initialized = true
-                    prepare(accessToken)
-                    reload()
-                } else {
-                    login()
-                }
-            }, {
-                login()
-            }).addTo(disposable)
+            ping(accessToken)
         }
         recycler_view.layoutManager = LinearLayoutManager(this)
 
@@ -159,6 +148,10 @@ class MainActivity : AppCompatActivity() {
             connect?.isEnabled = false
             disconnect?.isEnabled = false
         }
+        if (listening) {
+            connect?.isVisible = false
+            disconnect?.isVisible = true
+        }
         return true
     }
 
@@ -200,9 +193,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun reload() {
         if (!initialized) return
-        if (!refresher.isRefreshing) {
-            refresher.isRefreshing = true
-        }
+        if (refresher.isRefreshing) return
         when (selectedItem) {
             SelectedItem.People -> reloadPeople()
             SelectedItem.IncomingRequests -> reloadRequests(true)
@@ -240,9 +231,10 @@ class MainActivity : AppCompatActivity() {
         val app = App.getApp(this)
         val service = app.getService<PeopleService>()
         RequestListenerService.cancelActionListenRequest(this)
-        service.logout(app.accessToken).subscribe {
-            login()
-        }.addTo(disposable)
+        service.logout(app.accessToken)
+                .doFinally { login() }
+                .subscribe {}
+                .addTo(disposable)
     }
 
     private fun login() {
@@ -252,7 +244,21 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun ping(accessToken: String) = App.getApp(this).getService<PeopleService>().ping(accessToken)
+    private fun ping(accessToken: AccessToken) =
+            App.getApp(this)
+                    .getService<PeopleService>()
+                    .ping(accessToken.id)
+                    .observeOn(AndroidSchedulers.mainThread()).subscribe({
+                        if (it) {
+                            initialized = true
+                            prepare(accessToken)
+                            reload()
+                        } else {
+                            login()
+                        }
+                    }, {
+                        login()
+                    }).addTo(disposable)
 
     private fun reloadPeople() {
         val app = App.getApp(this)
@@ -262,13 +268,13 @@ class MainActivity : AppCompatActivity() {
                     return@map people.map { PersonVM(it) }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { refresher.isRefreshing = true }
+                .doFinally { refresher.isRefreshing = false }
                 .subscribe({ people ->
                     recycler_view.adapter = PeopleAdapter(people) { p ->
                         p?.person?.let { openPerson(it) }
                     }
-                    refresher.isRefreshing = false
                 }, {
-                    refresher.isRefreshing = false
                     Snackbar.make(refresher, R.string.reload_failed, Snackbar.LENGTH_SHORT).show()
                 })
                 .addTo(disposable)
@@ -286,15 +292,15 @@ class MainActivity : AppCompatActivity() {
                     return@map requests.map { request -> SummonRequestVM(request, incoming) }
                 }
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { refresher.isRefreshing = true }
+                .doFinally { refresher.isRefreshing = false }
                 .subscribe(
                         { requestsVM ->
                             recycler_view.adapter = SummonRequestsAdapter(requestsVM) { request ->
                                 request?.let { openSummonRequest(it) }
                             }
-                            refresher.isRefreshing = false
                         },
                         {
-                            refresher.isRefreshing = false
                             Snackbar.make(recycler_view, R.string.error_unknown, Snackbar.LENGTH_LONG).show()
                         })
                 .addTo(disposable)
