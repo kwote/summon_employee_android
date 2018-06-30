@@ -23,8 +23,11 @@ import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.viewmodel.PersonVM
 import employee.summon.asano.viewmodel.SummonRequestVM
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
@@ -32,6 +35,11 @@ class MainActivity : AppCompatActivity() {
         People,
         IncomingRequests,
         OutgoingRequests
+    }
+
+    override fun onPause() {
+        unschedulePing()
+        super.onPause()
     }
 
     private var selectedItem: SelectedItem = SelectedItem.People
@@ -87,7 +95,6 @@ class MainActivity : AppCompatActivity() {
             accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
             initialized = true
             prepare(accessToken)
-            reload()
         } else {
             accessToken = readAccessToken()
             if (accessToken == null) {
@@ -95,7 +102,10 @@ class MainActivity : AppCompatActivity() {
                 return
             }
             initialized = false
-            ping(accessToken)
+            ping(accessToken.id) {
+                initialized = true
+                prepare(accessToken)
+            }.addTo(disposable)
         }
         recycler_view.layoutManager = LinearLayoutManager(this)
 
@@ -109,6 +119,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         reload()
+        reschedulePing()
     }
 
     private fun prepare(accessToken: AccessToken) {
@@ -119,6 +130,27 @@ class MainActivity : AppCompatActivity() {
             disconnect?.isVisible = true
         }
         saveAccessToken(accessToken)
+        schedulePing()
+        reload()
+    }
+
+    private var pingSchedule : Disposable? = null
+
+    private fun schedulePing() {
+        pingSchedule = Observable.interval(10, 10, TimeUnit.SECONDS)
+                .subscribe {
+                    ping(App.getApp(this).accessToken) {}
+                }.addTo(disposable)
+    }
+
+    private fun reschedulePing() {
+        if (pingSchedule != null) {
+            schedulePing()
+        }
+    }
+
+    private fun unschedulePing() {
+        pingSchedule?.dispose()
     }
 
     private var logout: MenuItem? = null
@@ -193,7 +225,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun reload() {
         if (!initialized) return
-        if (refresher.isRefreshing) return
         when (selectedItem) {
             SelectedItem.People -> reloadPeople()
             SelectedItem.IncomingRequests -> reloadRequests(true)
@@ -244,21 +275,19 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun ping(accessToken: AccessToken) =
+    private fun ping(accessToken: String, onSuccess: ()->Unit) =
             App.getApp(this)
                     .getService<PeopleService>()
-                    .ping(accessToken.id)
+                    .ping(accessToken)
                     .observeOn(AndroidSchedulers.mainThread()).subscribe({
                         if (it) {
-                            initialized = true
-                            prepare(accessToken)
-                            reload()
+                            onSuccess()
                         } else {
                             login()
                         }
                     }, {
                         login()
-                    }).addTo(disposable)
+                    })
 
     private fun reloadPeople() {
         val app = App.getApp(this)
