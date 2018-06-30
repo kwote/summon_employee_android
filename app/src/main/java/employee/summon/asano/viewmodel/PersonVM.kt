@@ -18,7 +18,7 @@ class PersonVM(var person: Person) {
     fun post() = person.post
     fun email() = person.email
     fun phone() = person.phone
-    fun canDial() = person.phone != null
+    fun canDial() = !TextUtils.isEmpty(person.phone)
     fun isMe(context: Context): Boolean = App.getApp(context).user.id == person.id
     fun fullNameOrMe(context: Context): CharSequence? =
             if (isMe(context)) {

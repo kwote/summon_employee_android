@@ -140,8 +140,10 @@ class MainActivity : AppCompatActivity() {
 
     private var pingSchedule : Disposable? = null
 
+    private val pingPeriod : Long = 60
+
     private fun schedulePing() {
-        pingSchedule = Observable.interval(10, 10, TimeUnit.SECONDS)
+        pingSchedule = Observable.interval(pingPeriod, pingPeriod, TimeUnit.SECONDS)
                 .subscribe {
                     ping(App.getApp(this).accessToken) {}
                 }.addTo(disposable)
