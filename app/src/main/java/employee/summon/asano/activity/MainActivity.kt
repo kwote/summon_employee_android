@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018. $user.name. All rights reserved.
+ */
+
 package employee.summon.asano.activity
 
 import android.content.Context
@@ -144,8 +148,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun reschedulePing() {
-        if (pingSchedule != null) {
-            schedulePing()
+        pingSchedule?.let {
+            if (it.isDisposed) {
+                schedulePing()
+            }
         }
     }
 
