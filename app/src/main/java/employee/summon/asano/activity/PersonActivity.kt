@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.View
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import employee.summon.asano.*
 import employee.summon.asano.databinding.PersonActivityBinding
 import employee.summon.asano.model.AddSummonRequest
@@ -19,6 +21,7 @@ import employee.summon.asano.viewmodel.PersonVM
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_person.*
+import java.util.*
 
 class PersonActivity : AppCompatActivity() {
     private lateinit var personVM: PersonVM
@@ -88,9 +91,34 @@ class PersonActivity : AppCompatActivity() {
 
     private fun getLastOutgoingSummonRequests(callerId: Int, targetId: Int, count: Int): Observable<List<SummonRequest>> {
         val app = App.getApp(this)
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DATE, -1)
+        val date = cal.time
+        val filter = mutableMapOf(
+                "where" to mutableMapOf(
+                        "and" to mutableListOf(
+                                mutableMapOf(
+                                        "callerId" to callerId
+                                ),
+                                mutableMapOf(
+                                        "targetId" to targetId
+                                ),
+                                mutableMapOf(
+                                        "requested" to mutableMapOf(
+                                                "gt" to date.getStringTimeStampWithDate()
+                                        )
+                                )
+                        )
+                ),
+                "limit" to count,
+                "order" to "requested DESC"
+        )
+        val filterStr = moshi.adapter(Map::class.java).toJson(filter)
         return app.getService<SummonRequestService>()
-                .listOutgoingRequests(callerId, targetId, count, app.accessToken)
+                .listRequests(filterStr, app.accessToken)
     }
+
+    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     companion object {
         const val PERSON = "person"

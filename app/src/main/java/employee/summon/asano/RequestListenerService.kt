@@ -122,7 +122,7 @@ class RequestListenerService : Service() {
 
     private lateinit var eventSource: EventSource
 
-    private val builder = Moshi.Builder().build()
+    private val moshi = Moshi.Builder().build()
 
     inner class RequestHandler : EventSourceHandler {
         override fun onConnect() {
@@ -136,7 +136,7 @@ class RequestListenerService : Service() {
         override fun onMessage(event: String?, message: MessageEvent) {
             Log.v("SSE", event)
             Log.v("SSE Message: ", message.data)
-            val adapter = builder.adapter(SummonRequestMessage::class.javaObjectType)
+            val adapter = moshi.adapter(SummonRequestMessage::class.javaObjectType)
             val requestMessage = adapter.fromJson(message.data) ?: return
             val request = requestMessage.request()
             if (request.targetId == userId) {

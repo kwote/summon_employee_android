@@ -18,6 +18,7 @@ import android.view.MenuItem
 import android.view.View
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import employee.summon.asano.*
 import employee.summon.asano.adapter.FilterableAdapter
 import employee.summon.asano.adapter.PeopleAdapter
@@ -31,6 +32,7 @@ import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -138,9 +140,9 @@ class MainActivity : AppCompatActivity() {
         reload()
     }
 
-    private var pingSchedule : Disposable? = null
+    private var pingSchedule: Disposable? = null
 
-    private val pingPeriod : Long = 60
+    private val pingPeriod: Long = 60
 
     private fun schedulePing() {
         pingSchedule = Observable.interval(pingPeriod, pingPeriod, TimeUnit.SECONDS)
@@ -283,7 +285,7 @@ class MainActivity : AppCompatActivity() {
         finish()
     }
 
-    private fun ping(accessToken: String, onSuccess: ()->Unit) =
+    private fun ping(accessToken: String, onSuccess: () -> Unit) =
             App.getApp(this)
                     .getService<PeopleService>()
                     .ping(accessToken)
@@ -317,14 +319,29 @@ class MainActivity : AppCompatActivity() {
                 .addTo(disposable)
     }
 
+    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+
     private fun reloadRequests(incoming: Boolean) {
         val app = App.getApp(this)
         val peopleService = app.getService<PeopleService>()
         val accessToken = app.accessToken
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.DATE, -1)
+        val date = cal.time
+        val filter = mutableMapOf(
+                "where" to mutableMapOf(
+                        "requested" to mutableMapOf(
+                                "gt" to date.getStringTimeStampWithDate()
+                        )
+                ),
+                "include" to if (incoming) "caller" else "target",
+                "order" to "requested DESC"
+        )
+        val filterStr = moshi.adapter(Map::class.java).toJson(filter)
         (if (incoming)
-            peopleService.listIncomingRequests(app.user.id, accessToken)
+            peopleService.listIncomingRequests(app.user.id, accessToken, filterStr)
         else
-            peopleService.listOutgoingRequests(app.user.id, accessToken))
+            peopleService.listOutgoingRequests(app.user.id, accessToken, filterStr))
                 .map { requests ->
                     return@map requests.map { request -> SummonRequestVM(request, incoming) }
                 }

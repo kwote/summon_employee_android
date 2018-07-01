@@ -33,14 +33,12 @@ interface PeopleService {
     @GET("people/{id}/incomingRequests")
     fun listIncomingRequests(
             @Path("id") targetId: Int, @Header("Authorization") accessToken: String,
-            @Query("filter[include]") person: String = "caller",
-            @Query(value = "filter[order]", encoded = true) order: String = "requested DESC"
+            @Query(value = "filter", encoded = true) filter: String
     ): Observable<List<SummonRequest>>
 
     @GET("people/{id}/outgoingRequests")
     fun listOutgoingRequests(
             @Path("id") callerId: Int, @Header("Authorization") accessToken: String,
-            @Query("filter[include]") person: String = "target",
-            @Query(value = "filter[order]", encoded = true) order: String = "requested DESC"
+            @Query(value = "filter", encoded = true) filter: String
     ): Observable<List<SummonRequest>>
 }

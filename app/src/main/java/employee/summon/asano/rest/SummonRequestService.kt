@@ -30,10 +30,8 @@ interface SummonRequestService {
                       @Header("Authorization") accessToken: String): Observable<ResponseBody>
 
     @GET("summonrequests")
-    fun listOutgoingRequests(
-            @Query("filter[where][callerId]") callerId: Int,
-            @Query("filter[where][targetId]") targetId: Int,
-            @Query("filter[limit]") limit: Int,
+    fun listRequests(
+            @Query(value = "filter", encoded = true) filter: String,
             @Header("Authorization") accessToken: String
     ): Observable<List<SummonRequest>>
 }
