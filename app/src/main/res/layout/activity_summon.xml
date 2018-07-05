@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2018. $user.name. All rights reserved.
+  -->
+
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data class="SummonActivityBinding">
@@ -43,17 +47,15 @@
         android:id="@id/email"
         android:layout_height="wrap_content"
         android:text="@{requestVM.person.email()}"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginStart="@dimen/activity_horizontal_margin"
         app:layout_constraintTop_toBottomOf="@id/fullname"
-        app:layout_constraintLeft_toLeftOf="parent"/>
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"/>
     <TextView android:layout_width="wrap_content"
         android:id="@id/phone_view"
         android:layout_height="wrap_content"
         android:text="@{requestVM.person.phone()}"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:layout_marginEnd="@dimen/activity_horizontal_margin"
-        app:layout_constraintTop_toBottomOf="@id/fullname"
+        app:layout_constraintTop_toBottomOf="@id/email"
+        app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
     <Button
         android:id="@+id/accept"
@@ -67,7 +69,8 @@
         android:visibility="@{requestVM.canRespond() ? v.VISIBLE : v.GONE}"
         android:onClick="@{handlers::accept}"
         style="@style/Widget.AppCompat.Button.Colored"
-        app:layout_constraintTop_toBottomOf="@id/email"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toLeftOf="@id/reject"
         app:layout_constraintLeft_toLeftOf="parent"/>
     <Button
@@ -82,7 +85,8 @@
         android:visibility="@{requestVM.canRespond() ? v.VISIBLE : v.GONE}"
         android:onClick="@{handlers::reject}"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
-        app:layout_constraintTop_toBottomOf="@id/email"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@id/accept"
         app:layout_constraintRight_toRightOf="parent"/>
     <Button
@@ -94,7 +98,8 @@
         android:onClick="@{handlers::cancel}"
         style="@style/Widget.AppCompat.Button.Colored"
         app:backgroundTint="@android:color/holo_orange_light"
-        app:layout_constraintTop_toBottomOf="@id/email"
+        android:layout_marginBottom="@dimen/activity_vertical_margin"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"/>
 </android.support.constraint.ConstraintLayout>
