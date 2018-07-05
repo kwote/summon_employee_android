@@ -7,7 +7,7 @@ import retrofit2.http.*
 
 interface PeopleService {
     @PUT("people/ping")
-    fun ping(@Header("Authorization") accessToken: String): Observable<Boolean>
+    fun ping(@Query("token") accessToken: String): Observable<Boolean>
 
     @GET("people/canSummon")
     fun canSummon(@Query("targetId") targetId: Int, @Header("Authorization") accessToken: String): Observable<Boolean>
