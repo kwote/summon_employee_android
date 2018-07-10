@@ -1,3 +1,7 @@
+<!--
+  ~ Copyright (c) 2018. $user.name. All rights reserved.
+  -->
+
 <resources>
     <string name="app_name">Вызов сотрудника</string>
 
@@ -52,4 +56,5 @@
     <string name="search_title">Поиск</string>
     <string name="connect">Вкл</string>
     <string name="disconnect">Откл</string>
+    <string name="prompt_server_ip">IP сервера</string>
 </resources>

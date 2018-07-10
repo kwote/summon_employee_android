@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018. Ernest Asanov. All rights reserved.
+ * Copyright (c) 2018. $user.name. All rights reserved.
  */
 
 package employee.summon.asano.activity
@@ -140,6 +140,7 @@ class MainActivity : AppCompatActivity() {
         reload()
     }
 
+    // TODO ping across activities
     private var pingSchedule: Disposable? = null
 
     private val pingPeriod: Long = 60
