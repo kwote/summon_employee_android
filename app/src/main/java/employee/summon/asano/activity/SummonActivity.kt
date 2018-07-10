@@ -8,6 +8,8 @@ import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.Bundle
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.view.View
@@ -19,6 +21,7 @@ import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.model.SummonRequestUpdate
 import employee.summon.asano.rest.SummonRequestService
 import employee.summon.asano.viewmodel.SummonRequestVM
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_summon.*
 
@@ -59,19 +62,31 @@ class SummonActivity : AppCompatActivity() {
             }
             val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
             r = RingtoneManager.getRingtone(applicationContext, notification)
-            r?.play()
+            r?.play()// Get instance of Vibrator from current Context
+            val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val pattern = VibrationEffect.createWaveform(longArrayOf(0, 100, 1000), 0)
+
+                v.vibrate(pattern)
+            } else {
+                v.vibrate(longArrayOf(0, 100, 1000), 0)
+            }
         }
-        RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
+        RequestListenerService.requestUpdateBus
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { update ->
             if (request.id == update.request.id) {
                 requestVM.request = update.request
-                val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
-                binding?.requestVM = requestVM
-                binding?.executePendingBindings()
+                val reqBinding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
+                reqBinding?.requestVM = requestVM
+                reqBinding?.executePendingBindings()
                 when (update.type) {
                     SummonRequestUpdate.UpdateType.Cancel ->
                         if (isWakeful)
+                            finish()
+                        else
                             Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_SHORT).show()
-                        else finish()
                     SummonRequestUpdate.UpdateType.Accept ->
                         Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
                     SummonRequestUpdate.UpdateType.Reject ->
@@ -111,10 +126,12 @@ class SummonActivity : AppCompatActivity() {
                     .rejectRequest(request.id)
                     .observeOn(AndroidSchedulers.mainThread())
 
-    private fun cancelRequest(request: SummonRequest) =
-            App.getApp(this).getService<SummonRequestService>()
-                    .cancelRequest(request.id, App.getApp(this).accessToken)
-                    .observeOn(AndroidSchedulers.mainThread())
+    private fun cancelRequest(request: SummonRequest): Observable<SummonRequest> {
+        val app = App.getApp(this)
+        return app.getService<SummonRequestService>()
+                .cancelRequest(request.id, app.accessToken)
+                .observeOn(AndroidSchedulers.mainThread())
+    }
 
     inner class ClickHandlers(var context: Context) {
         fun accept(v: View) {
