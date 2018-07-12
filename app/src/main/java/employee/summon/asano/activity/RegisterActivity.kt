@@ -145,7 +145,7 @@ class RegisterActivity : AppCompatActivity() {
                                 finish()
                             },
                             {
-                                password_register.error = getString(R.string.error_incorrect_password)
+                                password_register.error = getString(R.string.error_unknown)
                                 password_register.requestFocus()
                             })
                     .addTo(disposable)
@@ -161,10 +161,7 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun isPhoneValid(phone: String?): Boolean {
-        if (phone != null) {
-            return validatePhone(phone)
-        }
-        return false
+        return phone?.let { validatePhone(it) } ?: false
     }
 
     private fun isEmailValid(email: String): Boolean {

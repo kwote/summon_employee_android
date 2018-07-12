@@ -248,8 +248,7 @@ class MainActivity : AppCompatActivity() {
         app.accessToken = accessToken.id
         app.user = accessToken.user
         val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        val accessTokenStr = Moshi.Builder().build()
-                .adapter(AccessToken::class.java).toJson(accessToken)
+        val accessTokenStr = moshi.adapter(AccessToken::class.java).toJson(accessToken)
         sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
         sharedPref.apply()
     }
@@ -261,7 +260,7 @@ class MainActivity : AppCompatActivity() {
             return null
         }
         return try {
-            Moshi.Builder().build().adapter(AccessToken::class.java).fromJson(accessTokenStr)
+            moshi.adapter(AccessToken::class.java).fromJson(accessTokenStr)
         } catch (e: JsonEncodingException) {
             null
         }

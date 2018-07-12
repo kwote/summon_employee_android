@@ -42,7 +42,9 @@ class PersonActivity : AppCompatActivity() {
         binding.handlers = handlers
 
         getPendingRequest()
-        RequestListenerService.requestUpdateBus.observeOn(AndroidSchedulers.mainThread()).subscribe { update ->
+        RequestListenerService.requestUpdateBus
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { update ->
             if (pendingRequest.request?.id == update.request.id) {
                 when (update.request.state) {
                     SummonRequest.RequestState.Accepted.code -> {
@@ -61,7 +63,6 @@ class PersonActivity : AppCompatActivity() {
     private fun getPendingRequest() {
         if (!personVM.isMe(this)) {
             getLastOutgoingSummonRequests(
-                    App.getApp(this).user.id,
                     personVM.person.id, 3)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe({
@@ -89,8 +90,10 @@ class PersonActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun getLastOutgoingSummonRequests(callerId: Int, targetId: Int, count: Int): Observable<List<SummonRequest>> {
+    private fun getLastOutgoingSummonRequests(targetId: Int, count: Int):
+            Observable<List<SummonRequest>> {
         val app = App.getApp(this)
+        val callerId = app.user.id
         val cal = Calendar.getInstance()
         cal.add(Calendar.DATE, -1)
         val date = cal.time
@@ -145,8 +148,9 @@ class PersonActivity : AppCompatActivity() {
 
         fun cancel(v: View) {
             pendingRequest.request?.id?.let { requestId ->
-                val service = App.getApp(this@PersonActivity).getService<SummonRequestService>()
-                service.cancelRequest(requestId, App.getApp(this@PersonActivity).accessToken)
+                val app = App.getApp(this@PersonActivity)
+                val service = app.getService<SummonRequestService>()
+                service.cancelRequest(requestId, app.accessToken)
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe({
                             getPendingRequest()

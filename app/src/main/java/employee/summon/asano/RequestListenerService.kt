@@ -37,6 +37,7 @@ class RequestListenerService : Service() {
             when (intent.action) {
                 ACTION_LISTEN_REQUEST -> {
                     if (intent.hasExtra(App.ACCESS_TOKEN)) {
+                        closeConnection()
                         accessToken = intent.getStringExtra(App.ACCESS_TOKEN)
                         userId = intent.getIntExtra(USER_ID_EXTRA, 0)
                         val headers = mutableMapOf("Authorization" to accessToken)
@@ -48,7 +49,7 @@ class RequestListenerService : Service() {
                                 .headers(headers)
                                 .eventHandler(requestHandler)
                                 .build()
-                        eventSource.connect()
+                        eventSource?.connect()
                     }
                 }
                 ACTION_CLOSE_CONNECTION -> {
@@ -109,18 +110,18 @@ class RequestListenerService : Service() {
 
     override fun onDestroy() {
         closeConnection()
+        stopForeground(true)
         wakeLock?.release()
         super.onDestroy()
     }
 
     private fun closeConnection() {
-        eventSource.close()
-        stopForeground(true)
+        eventSource?.close()
     }
 
     private var requestHandler = RequestHandler()
 
-    private lateinit var eventSource: EventSource
+    private var eventSource: EventSource? = null
 
     private val moshi = Moshi.Builder().build()
 
