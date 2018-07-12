@@ -92,6 +92,17 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    private fun readServerUrl(): String {
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        return sharedPref.getString(App.SERVER_URL, "")
+    }
+
+    private fun saveServerUrl(serverUrl: String) {
+        val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
+        sharedPref.putString(App.SERVER_URL, serverUrl)
+        sharedPref.apply()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -102,6 +113,8 @@ class MainActivity : AppCompatActivity() {
             initialized = true
             prepare(accessToken)
         } else {
+            val serverUrl = readServerUrl()
+            App.getApp(this).serverUrl = serverUrl
             accessToken = readAccessToken()
             if (accessToken == null) {
                 login()
@@ -135,6 +148,8 @@ class MainActivity : AppCompatActivity() {
             connect?.isVisible = false
             disconnect?.isVisible = true
         }
+        val serverUrl = App.getApp(this).serverUrl
+        saveServerUrl(serverUrl)
         saveAccessToken(accessToken)
         schedulePing()
         reload()
