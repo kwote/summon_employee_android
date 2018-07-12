@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2018. $user.name. All rights reserved.
+ */
+
 package employee.summon.asano.activity
 
 import android.app.KeyguardManager
@@ -62,16 +66,7 @@ class SummonActivity : AppCompatActivity() {
             }
             val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
             r = RingtoneManager.getRingtone(applicationContext, notification)
-            r?.play()// Get instance of Vibrator from current Context
-            val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val pattern = VibrationEffect.createWaveform(longArrayOf(0, 100, 1000), 0)
-
-                v.vibrate(pattern)
-            } else {
-                v.vibrate(longArrayOf(0, 100, 1000), 0)
-            }
+            startSignal()
         }
         RequestListenerService.requestUpdateBus
                 .observeOn(AndroidSchedulers.mainThread())
@@ -96,18 +91,37 @@ class SummonActivity : AppCompatActivity() {
         }.addTo(disposable)
     }
 
+    private fun startSignal() {
+        r?.play()// Get instance of Vibrator from current Context
+        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val pattern = VibrationEffect.createWaveform(longArrayOf(0, 100, 1000), 0)
+
+            v.vibrate(pattern)
+        } else {
+            v.vibrate(longArrayOf(0, 100, 1000), 0)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         if (isWakeful) {
-            r?.play()
+            startSignal()
         }
     }
 
     override fun onPause() {
         if (isWakeful) {
-            r?.stop()
+            stopSignal()
         }
         super.onPause()
+    }
+
+    private fun stopSignal() {
+        r?.stop()
+        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        v.cancel()
     }
 
     private val disposable = AndroidDisposable()
@@ -136,7 +150,7 @@ class SummonActivity : AppCompatActivity() {
     inner class ClickHandlers(var context: Context) {
         fun accept(v: View) {
             if (isWakeful) {
-                r?.stop()
+                stopSignal()
                 r = null
             }
             acceptRequest(requestVM.request)
@@ -155,7 +169,7 @@ class SummonActivity : AppCompatActivity() {
 
         fun reject(v: View) {
             if (isWakeful) {
-                r?.stop()
+                stopSignal()
                 r = null
             }
             rejectRequest(requestVM.request)
