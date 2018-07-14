@@ -73,9 +73,7 @@ class SummonActivity : AppCompatActivity() {
                 .subscribe { update ->
             if (request.id == update.request.id) {
                 requestVM.request = update.request
-                val reqBinding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
-                reqBinding?.requestVM = requestVM
-                reqBinding?.executePendingBindings()
+                updateView()
                 when (update.type) {
                     SummonRequestUpdate.UpdateType.Cancel ->
                         if (isWakeful)
@@ -86,6 +84,8 @@ class SummonActivity : AppCompatActivity() {
                         Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
                     SummonRequestUpdate.UpdateType.Reject ->
                         Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
+                    else -> {
+                    }
                 }
             }
         }.addTo(disposable)
@@ -156,9 +156,7 @@ class SummonActivity : AppCompatActivity() {
             acceptRequest(requestVM.request)
                     .subscribe({
                         requestVM.accept()
-                        val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
-                        binding?.requestVM = requestVM
-                        binding?.executePendingBindings()
+                        updateView()
                         if (!isWakeful)
                             Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
                         else finish()
@@ -175,9 +173,7 @@ class SummonActivity : AppCompatActivity() {
             rejectRequest(requestVM.request)
                     .subscribe({
                         requestVM.reject()
-                        val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
-                        binding?.requestVM = requestVM
-                        binding?.executePendingBindings()
+                        updateView()
                         if (!isWakeful)
                             Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
                         else finish()
@@ -190,9 +186,7 @@ class SummonActivity : AppCompatActivity() {
             cancelRequest(requestVM.request)
                     .subscribe({
                         requestVM.cancel()
-                        val binding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
-                        binding?.requestVM = requestVM
-                        binding?.executePendingBindings()
+                        updateView()
                         Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
                     }, {
                         Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
@@ -204,5 +198,11 @@ class SummonActivity : AppCompatActivity() {
             intent.putExtra(PersonActivity.PERSON, requestVM.person?.person)
             startActivity(intent)
         }
+    }
+
+    private fun updateView() {
+        val reqBinding = DataBindingUtil.findBinding<SummonActivityBinding>(phone_view)
+        reqBinding?.requestVM = requestVM
+        reqBinding?.executePendingBindings()
     }
 }

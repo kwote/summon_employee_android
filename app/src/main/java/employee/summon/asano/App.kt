@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.support.v7.app.AppCompatDelegate
 import android.text.TextUtils
+import android.util.Log
 import employee.summon.asano.model.Person
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -12,14 +13,33 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 class App : Application() {
     lateinit var accessToken: String
     var serverUrl: String = ""
+        get () {
+            if (TextUtils.isEmpty(field)) {
+                return getString(R.string.base_url)
+            }
+            return field
+        }
         set (value) {
             field = value
-            retrofit = Retrofit.Builder()
-                    .baseUrl(if (TextUtils.isEmpty(value)) getString(R.string.base_url) else "http://$value:3000/api/")
+            retrofit = retrofitClient(value)
+            services.clear()
+        }
+
+    fun serverAvailable() = retrofit != null
+
+    private fun retrofitClient(serverUrl: String): Retrofit? {
+        try {
+            return Retrofit.Builder()
+                    .baseUrl("$serverUrl/api/")
                     .addConverterFactory(MoshiConverterFactory.create())
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.createAsync())
                     .build()
+        } catch (e: Exception) {
+            Log.e("Retrofit", "Failed to init $serverUrl", e)
         }
+        return null
+    }
+
     lateinit var user: Person
 
     init {
@@ -27,6 +47,13 @@ class App : Application() {
     }
 
     var retrofit: Retrofit? = null
+        get() {
+            if (field == null) {
+                field = retrofitClient(serverUrl)
+                services.clear()
+            }
+            return field
+        }
 
     val services : MutableMap<String, Any> = HashMap()
 

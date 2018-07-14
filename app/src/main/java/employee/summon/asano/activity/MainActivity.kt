@@ -108,23 +108,28 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val accessToken: AccessToken?
+        initialized = false
         if (intent.hasExtra(App.ACCESS_TOKEN)) {
             accessToken = intent.getParcelableExtra(App.ACCESS_TOKEN)
             initialized = true
             prepare(accessToken)
         } else {
             val serverUrl = readServerUrl()
-            App.getApp(this).serverUrl = serverUrl
-            accessToken = readAccessToken()
-            if (accessToken == null) {
+            val app = App.getApp(this)
+            app.serverUrl = serverUrl
+            if (!app.serverAvailable()) {
                 login()
-                return
+            } else {
+                accessToken = readAccessToken()
+                if (accessToken == null) {
+                    login()
+                } else {
+                    ping(accessToken.id) {
+                        initialized = true
+                        prepare(accessToken)
+                    }.addTo(disposable)
+                }
             }
-            initialized = false
-            ping(accessToken.id) {
-                initialized = true
-                prepare(accessToken)
-            }.addTo(disposable)
         }
         recycler_view.layoutManager = LinearLayoutManager(this)
 

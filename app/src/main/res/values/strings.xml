@@ -19,7 +19,6 @@
     <string name="title_employees">Employees</string>
     <string name="title_incoming_requests">Incoming</string>
     <string name="title_outgoing_requests">Outgoing</string>
-    <string name="base_url">http://10.0.2.2:3000/api/</string>
     <string name="title_access_token">Access token</string>
     <string name="prompt_firstname">First Name</string>
     <string name="prompt_lastname">Last Name</string>
@@ -59,4 +58,5 @@
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
     <string name="prompt_server_ip">Server IP</string>
+    <string name="server_not_found">Server not found</string>
 </resources>

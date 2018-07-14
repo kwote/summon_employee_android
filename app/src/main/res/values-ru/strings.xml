@@ -57,4 +57,5 @@
     <string name="connect">Вкл</string>
     <string name="disconnect">Откл</string>
     <string name="prompt_server_ip">IP сервера</string>
+    <string name="server_not_found">Сервер не найден</string>
 </resources>

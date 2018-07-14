@@ -42,11 +42,12 @@ class RequestListenerService : Service() {
                         userId = intent.getIntExtra(USER_ID_EXTRA, 0)
                         val headers = mutableMapOf("Authorization" to accessToken)
                         eventSource = EventSource.Builder(
-                                getString(R.string.base_url) + REQUEST_URL_SUFFIX +
+                                App.getApp(this).serverUrl+"/api/" + REQUEST_URL_SUFFIX +
                                         URLEncoder.encode(String.format(
                                                 REQUEST_URL_ESC_SUFFIX, userId, userId
                                         ), "UTF-8"))
                                 .headers(headers)
+                                .reconnectInterval(120)
                                 .eventHandler(requestHandler)
                                 .build()
                         eventSource?.connect()
@@ -143,6 +144,7 @@ class RequestListenerService : Service() {
             if (request.targetId == userId) {
                 when (requestMessage.type) {
                     "create" -> {
+                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Create))
                         val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
                         launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         launchIntent.putExtra(SummonActivity.IS_INCOMING, true)

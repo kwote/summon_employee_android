@@ -46,10 +46,22 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun registerNewPerson() {
+        val app = App.getApp(this)
+        val serverUrl = server_login.text.toString()
+        if (!verifyServer(app, serverUrl)) return
         val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
         startActivity(intent)
         finish()
+    }
+
+    private fun verifyServer(app: App, serverUrl: String): Boolean {
+        app.serverUrl = serverUrl
+        if (!app.serverAvailable()) {
+            server_login.error = getString(R.string.server_not_found)
+            return false
+        }
+        return true
     }
 
     private val disposable = AndroidDisposable()
@@ -105,7 +117,10 @@ class LoginActivity : AppCompatActivity() {
         } else {
             val serverUrl = server_login.text.toString()
             val app = App.getApp(this)
-            app.serverUrl = serverUrl
+            if (!verifyServer(app, serverUrl)) {
+                inProgress = false
+                return
+            }
             val peopleService = app.getService<PeopleService>()
             val credentials = LoginCredentials(emailStr, passwordStr)
             peopleService.login(credentials)
