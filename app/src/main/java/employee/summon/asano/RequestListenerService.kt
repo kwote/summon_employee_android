@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.Message
 import android.os.PowerManager
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
@@ -18,8 +19,12 @@ import employee.summon.asano.activity.MainActivity
 import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.SummonRequestMessage
 import employee.summon.asano.model.SummonRequestUpdate
+import employee.summon.asano.rest.PeopleService
+import io.reactivex.Observable
+import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
 import java.net.URLEncoder
+import java.util.concurrent.TimeUnit
 
 
 class RequestListenerService : Service() {
@@ -37,20 +42,12 @@ class RequestListenerService : Service() {
             when (intent.action) {
                 ACTION_LISTEN_REQUEST -> {
                     if (intent.hasExtra(App.ACCESS_TOKEN)) {
+                        acquireWakeLock()
                         closeConnection()
                         accessToken = intent.getStringExtra(App.ACCESS_TOKEN)
                         userId = intent.getIntExtra(USER_ID_EXTRA, 0)
-                        val headers = mutableMapOf("Authorization" to accessToken)
-                        eventSource = EventSource.Builder(
-                                App.getApp(this).serverUrl+"/api/" + REQUEST_URL_SUFFIX +
-                                        URLEncoder.encode(String.format(
-                                                REQUEST_URL_ESC_SUFFIX, userId, userId
-                                        ), "UTF-8"))
-                                .headers(headers)
-                                .reconnectInterval(120)
-                                .eventHandler(requestHandler)
-                                .build()
-                        eventSource?.connect()
+                        openConnection(accessToken, userId)
+                        schedulePing()
                     }
                 }
                 ACTION_CLOSE_CONNECTION -> {
@@ -58,12 +55,57 @@ class RequestListenerService : Service() {
                     stopSelf()
                 }
             }
-            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-            wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    WAKELOCK_TAG)
-            wakeLock?.acquire(3600 * 8 * 1000)
+
         }
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    private fun acquireWakeLock() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                WAKELOCK_TAG)
+        wakeLock?.acquire(3600 * 8 * 1000)
+    }
+
+    private var connected = false
+    private val disposable = AndroidDisposable()
+    private var pingSchedule: Disposable? = null
+    private val pingPeriod: Long = 60
+
+    private fun schedulePing() {
+        pingSchedule = Observable.interval(pingPeriod, pingPeriod, TimeUnit.SECONDS)
+                .subscribe {
+                    val app = App.getApp(this)
+                    accessToken = app.accessToken
+                    app.getService<PeopleService>()
+                            .ping(accessToken)
+                            .subscribe({valid->
+                                if (valid && !connected) {
+                                    openConnection(accessToken, userId)
+                                } else if (!valid && connected) {
+                                    closeConnection() //TODO relogin
+                                    val message = Message().apply { what = ConnectionState.Disconnected.code }
+                                    messageBus.onNext(message)
+                                }
+                            }, {
+                                closeConnection()
+                            })
+                }.addTo(disposable)
+    }
+
+    private fun openConnection(accessToken: String, userId: Int) {
+        val headers = mutableMapOf("Authorization" to accessToken)
+        eventSource = EventSource.Builder(
+                App.getApp(this).serverUrl + "/api/" + REQUEST_URL_SUFFIX +
+                        URLEncoder.encode(String.format(
+                                REQUEST_URL_ESC_SUFFIX, userId, userId
+                        ), "UTF-8"))
+                .headers(headers)
+                .reconnectInterval(120)
+                .eventHandler(requestHandler)
+                .build()
+        eventSource?.connect()
+        connected = true
     }
 
     private fun getNotificationBuilder(context: Context, channelId: String, importance: Int): NotificationCompat.Builder {
@@ -113,11 +155,13 @@ class RequestListenerService : Service() {
         closeConnection()
         stopForeground(true)
         wakeLock?.release()
+        disposable.dispose()
         super.onDestroy()
     }
 
     private fun closeConnection() {
         eventSource?.close()
+        connected = false
     }
 
     private var requestHandler = RequestHandler()
@@ -129,6 +173,7 @@ class RequestListenerService : Service() {
     inner class RequestHandler : EventSourceHandler {
         override fun onConnect() {
             Log.v("SSE connected", "True")
+            connected = true
         }
 
         override fun onComment(comment: String?) {
@@ -168,6 +213,9 @@ class RequestListenerService : Service() {
 
         override fun onClosed(willReconnect: Boolean) {
             Log.v("SSE Closed", "reconnect? $willReconnect")
+            if (!willReconnect) {
+                connected = false
+            }
         }
 
         override fun onError(t: Throwable?) {
@@ -175,8 +223,16 @@ class RequestListenerService : Service() {
         }
     }
 
+    enum class ConnectionState(val code: Int) {
+        None(0),
+        Connecting(1),
+        Connected(2),
+        Disconnected(3)
+    }
+
     companion object {
         val requestUpdateBus: PublishSubject<SummonRequestUpdate> = PublishSubject.create()
+        val messageBus: PublishSubject<Message> = PublishSubject.create()
 
         private const val REQUEST_URL_SUFFIX = "summonrequests/change-stream?options="
         private const val REQUEST_URL_ESC_SUFFIX = "{\"where\":{\"or\":[{\"targetId\":%d},{\"callerId\":%d}]}}"

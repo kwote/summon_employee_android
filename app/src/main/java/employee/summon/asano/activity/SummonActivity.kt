@@ -157,9 +157,7 @@ class SummonActivity : AppCompatActivity() {
                     .subscribe({
                         requestVM.accept()
                         updateView()
-                        if (!isWakeful)
-                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_LONG).show()
-                        else finish()
+                        if (isWakeful) finish()
                     }, {
                         Snackbar.make(phone_view, R.string.request_accept_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
@@ -174,9 +172,7 @@ class SummonActivity : AppCompatActivity() {
                     .subscribe({
                         requestVM.reject()
                         updateView()
-                        if (!isWakeful)
-                            Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_LONG).show()
-                        else finish()
+                        if (!isWakeful) finish()
                     }, {
                         Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
@@ -187,7 +183,6 @@ class SummonActivity : AppCompatActivity() {
                     .subscribe({
                         requestVM.cancel()
                         updateView()
-                        Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_LONG).show()
                     }, {
                         Snackbar.make(phone_view, R.string.request_cancel_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)

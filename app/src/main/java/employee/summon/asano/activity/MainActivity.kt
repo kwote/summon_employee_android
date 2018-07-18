@@ -28,12 +28,9 @@ import employee.summon.asano.model.Person
 import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.viewmodel.PersonVM
 import employee.summon.asano.viewmodel.SummonRequestVM
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
@@ -41,11 +38,6 @@ class MainActivity : AppCompatActivity() {
         People,
         IncomingRequests,
         OutgoingRequests
-    }
-
-    override fun onPause() {
-        unschedulePing()
-        super.onPause()
     }
 
     private var selectedItem: SelectedItem = SelectedItem.People
@@ -138,12 +130,19 @@ class MainActivity : AppCompatActivity() {
         refresher.setOnRefreshListener {
             reload()
         }
+
+        RequestListenerService.messageBus
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {message->
+                    when (message.what) {
+                        RequestListenerService.ConnectionState.Disconnected.code -> login()
+                    }
+                }
     }
 
     override fun onResume() {
         super.onResume()
         reload()
-        reschedulePing()
     }
 
     private fun prepare(accessToken: AccessToken) {
@@ -156,32 +155,7 @@ class MainActivity : AppCompatActivity() {
         val serverUrl = App.getApp(this).serverUrl
         saveServerUrl(serverUrl)
         saveAccessToken(accessToken)
-        schedulePing()
         reload()
-    }
-
-    // TODO ping across activities
-    private var pingSchedule: Disposable? = null
-
-    private val pingPeriod: Long = 60
-
-    private fun schedulePing() {
-        pingSchedule = Observable.interval(pingPeriod, pingPeriod, TimeUnit.SECONDS)
-                .subscribe {
-                    ping(App.getApp(this).accessToken) {}
-                }.addTo(disposable)
-    }
-
-    private fun reschedulePing() {
-        pingSchedule?.let {
-            if (it.isDisposed) {
-                schedulePing()
-            }
-        }
-    }
-
-    private fun unschedulePing() {
-        pingSchedule?.dispose()
     }
 
     private var logout: MenuItem? = null
@@ -292,6 +266,7 @@ class MainActivity : AppCompatActivity() {
         val app = App.getApp(this)
         val service = app.getService<PeopleService>()
         RequestListenerService.cancelActionListenRequest(this)
+        //TODO reset token
         service.logout(app.accessToken)
                 .doFinally { login() }
                 .subscribe {}
