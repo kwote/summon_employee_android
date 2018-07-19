@@ -172,7 +172,7 @@ class SummonActivity : AppCompatActivity() {
                     .subscribe({
                         requestVM.reject()
                         updateView()
-                        if (!isWakeful) finish()
+                        if (isWakeful) finish()
                     }, {
                         Snackbar.make(phone_view, R.string.request_reject_failed, Snackbar.LENGTH_LONG).show()
                     }).addTo(disposable)
