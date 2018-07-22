@@ -72,12 +72,12 @@ class PersonActivity : AppCompatActivity() {
                         } else {
                             active[0]
                         }
-                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(summon_fab)
+                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(summon_btn)
                         binding?.request = pendingRequest
                         binding?.executePendingBindings()
                     }, {
                         pendingRequest.request = null
-                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(summon_fab)
+                        val binding = DataBindingUtil.findBinding<PersonActivityBinding>(summon_btn)
                         binding?.request = pendingRequest
                         binding?.executePendingBindings()
                         Snackbar.make(phone_view, R.string.error_unknown, Snackbar.LENGTH_SHORT).show()

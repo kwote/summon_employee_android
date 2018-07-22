@@ -58,4 +58,6 @@
     <string name="disconnect">Откл</string>
     <string name="prompt_server_ip">IP сервера</string>
     <string name="server_not_found">Сервер не найден</string>
+    <string name="phone_call">Набрать номер</string>
+    <string name="action_cancel">Отменить</string>
 </resources>
