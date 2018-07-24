@@ -70,10 +70,9 @@ class RequestListenerService : Service() {
     private var connected = false
     private val disposable = AndroidDisposable()
     private var pingSchedule: Disposable? = null
-    private val pingPeriod: Long = 60
 
     private fun schedulePing() {
-        pingSchedule = Observable.interval(pingPeriod, pingPeriod, TimeUnit.SECONDS)
+        pingSchedule = Observable.interval(PING_PERIOD, PING_PERIOD, TimeUnit.SECONDS)
                 .subscribe {
                     val app = App.getApp(this)
                     accessToken = app.accessToken
@@ -197,6 +196,10 @@ class RequestListenerService : Service() {
                         launchIntent.putExtra(App.REQUEST, request)
                         this@RequestListenerService.startActivity(launchIntent)
                     }
+                    "accept" ->
+                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
+                    "reject" ->
+                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Reject))
                     "cancel" -> {
                         requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Cancel))
                     }
@@ -240,6 +243,7 @@ class RequestListenerService : Service() {
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         private const val USER_ID_EXTRA = "user_id_extra"
         private const val WAKELOCK_TAG = "SumEmpWakelockTag"
+        const val PING_PERIOD: Long = 60
         const val ONGOING_NOTIFICATION_ID = 1
         /**
          * Starts this service to perform action Foo with the given parameters. If

@@ -60,4 +60,5 @@
     <string name="server_not_found">Сервер не найден</string>
     <string name="phone_call">Набрать номер</string>
     <string name="action_cancel">Отменить</string>
+    <string name="offline">Оффлайн</string>
 </resources>

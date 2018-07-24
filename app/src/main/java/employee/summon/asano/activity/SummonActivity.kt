@@ -81,9 +81,15 @@ class SummonActivity : AppCompatActivity() {
                         else
                             Snackbar.make(phone_view, R.string.request_canceled, Snackbar.LENGTH_SHORT).show()
                     SummonRequestUpdate.UpdateType.Accept ->
-                        Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
+                        if (isWakeful)
+                            finish()
+                        else
+                            Snackbar.make(phone_view, R.string.request_accepted, Snackbar.LENGTH_SHORT).show()
                     SummonRequestUpdate.UpdateType.Reject ->
-                        Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
+                        if (isWakeful)
+                            finish()
+                        else
+                            Snackbar.make(phone_view, R.string.request_rejected, Snackbar.LENGTH_SHORT).show()
                     else -> {
                     }
                 }
