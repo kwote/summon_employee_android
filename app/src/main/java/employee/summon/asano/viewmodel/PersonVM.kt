@@ -2,12 +2,12 @@ package employee.summon.asano.viewmodel
 
 import android.content.Context
 import android.text.TextUtils
+import android.text.format.DateUtils
 import employee.summon.asano.App
 import employee.summon.asano.R
 import employee.summon.asano.RequestListenerService
-import employee.summon.asano.getDateWithServerTimeStamp
 import employee.summon.asano.model.Person
-import java.util.*
+import employee.summon.asano.model.SummonPerson
 
 class PersonVM(var person: Person) {
     fun fullName() =
@@ -28,16 +28,15 @@ class PersonVM(var person: Person) {
                 context.getString(R.string.me)
             } else fullName()
 
-    fun online(context: Context): String {
-        val lastActive = person.lastActiveTime?.getDateWithServerTimeStamp()
-        lastActive?.let {
-            val minusPing = Calendar.getInstance()
-            minusPing.add(Calendar.SECOND, (-RequestListenerService.PING_PERIOD).toInt())
-            val minus = minusPing.time
-            return if (minus.before(lastActive)) {
+    fun online(context: Context): CharSequence? {
+        val inactive = (person as SummonPerson).inactive
+        inactive?.let {
+            val seconds = inactive / 1000
+            return if (seconds <= RequestListenerService.PING_PERIOD) {
                 context.getString(R.string.online)
             } else {
-                context.getString(R.string.offline)
+                val now = System.currentTimeMillis()
+                DateUtils.getRelativeTimeSpanString(now - inactive, now, DateUtils.MINUTE_IN_MILLIS)
             }
         }
         return context.getString(R.string.offline)

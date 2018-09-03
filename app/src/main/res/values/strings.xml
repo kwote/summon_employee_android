@@ -57,7 +57,7 @@
     <string name="search_title">Search</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
-    <string name="prompt_server_ip">Server IP</string>
+    <string name="prompt_server_ip">Server URL</string>
     <string name="server_not_found">Server not found</string>
     <string name="phone_call">Phone call</string>
     <string name="action_cancel">Cancel</string>

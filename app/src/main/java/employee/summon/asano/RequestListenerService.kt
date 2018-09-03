@@ -73,7 +73,7 @@ class RequestListenerService : Service() {
 
     private fun schedulePing() {
         pingSchedule = Observable.interval(PING_PERIOD, PING_PERIOD, TimeUnit.SECONDS)
-                .subscribe {
+                .subscribe { _ ->
                     val app = App.getApp(this)
                     accessToken = app.accessToken
                     app.getService<PeopleService>()
@@ -82,7 +82,7 @@ class RequestListenerService : Service() {
                                 if (valid && !connected) {
                                     openConnection(accessToken, userId)
                                 } else if (!valid && connected) {
-                                    closeConnection() //TODO relogin
+                                    closeConnection()
                                     val message = Message().apply { what = ConnectionState.Disconnected.code }
                                     messageBus.onNext(message)
                                 }
@@ -100,7 +100,7 @@ class RequestListenerService : Service() {
                                 REQUEST_URL_ESC_SUFFIX, userId, userId
                         ), "UTF-8"))
                 .headers(headers)
-                .reconnectInterval(120)
+                .reconnectInterval(PING_PERIOD / 4)
                 .eventHandler(requestHandler)
                 .build()
         eventSource?.connect()

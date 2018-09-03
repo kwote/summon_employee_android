@@ -11,8 +11,9 @@ class SummonRequestVM(var req: SummonRequest, var incoming: Boolean) {
     fun canDisable() = !incoming && request.enabled
     private fun person(): PersonVM? {
         val person = if (incoming) request.caller else request.target
-        if (person != null)
+        if (person != null) {
             return PersonVM(person)
+        }
         return null
     }
 

@@ -16,7 +16,7 @@ interface PeopleService {
     fun listPeople(@Header("Authorization") accessToken: String): Observable<List<Person>>
 
     @GET("people/summon")
-    fun listSummonPeople(@Header("Authorization") accessToken: String): Observable<List<Person>>
+    fun listSummonPeople(@Header("Authorization") accessToken: String): Observable<List<SummonPerson>>
 
     @GET("people/{id}")
     fun getPerson(@Path("id") personId: Int, @Header("Authorization") accessToken: String): Observable<Person>
