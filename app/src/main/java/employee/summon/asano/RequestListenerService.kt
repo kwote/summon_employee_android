@@ -11,10 +11,10 @@ import android.os.PowerManager
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
+import com.launchdarkly.eventsource.EventHandler
+import com.launchdarkly.eventsource.EventSource
+import com.launchdarkly.eventsource.MessageEvent
 import com.squareup.moshi.Moshi
-import com.tylerjroach.eventsource.EventSource
-import com.tylerjroach.eventsource.EventSourceHandler
-import com.tylerjroach.eventsource.MessageEvent
 import employee.summon.asano.activity.MainActivity
 import employee.summon.asano.activity.SummonActivity
 import employee.summon.asano.model.SummonRequestMessage
@@ -23,11 +23,13 @@ import employee.summon.asano.rest.PeopleService
 import io.reactivex.Observable
 import io.reactivex.disposables.Disposable
 import io.reactivex.subjects.PublishSubject
+import okhttp3.Headers
+import java.net.URI
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
 
-class RequestListenerService : Service() {
+class RequestListenerService : Service(), EventHandler {
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
@@ -93,17 +95,18 @@ class RequestListenerService : Service() {
     }
 
     private fun openConnection(accessToken: String, userId: Int) {
-        val headers = mutableMapOf("Authorization" to accessToken)
+        val headers = Headers.of(mutableMapOf("Authorization" to accessToken))
         eventSource = EventSource.Builder(
-                App.getApp(this).serverUrl + "/api/" + REQUEST_URL_SUFFIX +
+                this,
+                URI.create(App.getApp(this).serverUrl + "/api/" + REQUEST_URL_SUFFIX +
                         URLEncoder.encode(String.format(
                                 REQUEST_URL_ESC_SUFFIX, userId, userId
-                        ), "UTF-8"))
+                        ), "UTF-8")))
                 .headers(headers)
-                .reconnectInterval(PING_PERIOD / 4)
-                .eventHandler(requestHandler)
+                .name("summon_request")
+                .reconnectTimeMs(PING_PERIOD / 4 * 1000)
                 .build()
-        eventSource?.connect()
+        eventSource?.start()
         connected = true
     }
 
@@ -163,67 +166,61 @@ class RequestListenerService : Service() {
         connected = false
     }
 
-    private var requestHandler = RequestHandler()
-
     private var eventSource: EventSource? = null
 
     private val moshi = Moshi.Builder().build()
 
-    inner class RequestHandler : EventSourceHandler {
-        override fun onConnect() {
-            Log.v("SSE connected", "True")
-            connected = true
-        }
+    override fun onOpen() {
+        Log.v("SSE connected", "True")
+        connected = true
+    }
 
-        override fun onComment(comment: String?) {
-            Log.v("SSE Comment", comment)
-        }
+    override fun onComment(comment: String?) {
+        Log.v("SSE Comment", comment)
+    }
 
-        override fun onMessage(event: String?, message: MessageEvent) {
-            Log.v("SSE", event)
-            Log.v("SSE Message: ", message.data)
-            val adapter = moshi.adapter(SummonRequestMessage::class.javaObjectType)
-            val requestMessage = adapter.fromJson(message.data) ?: return
-            val request = requestMessage.request()
-            if (request.targetId == userId) {
-                when (requestMessage.type) {
-                    "create" -> {
-                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Create))
-                        val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
-                        launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                        launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
-                        launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
-                        launchIntent.putExtra(App.REQUEST, request)
-                        this@RequestListenerService.startActivity(launchIntent)
-                    }
-                    "accept" ->
-                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
-                    "reject" ->
-                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Reject))
-                    "cancel" -> {
-                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Cancel))
-                    }
+    override fun onMessage(event: String?, message: MessageEvent) {
+        Log.v("SSE", event)
+        Log.v("SSE Message: ", message.data)
+        val adapter = moshi.adapter(SummonRequestMessage::class.javaObjectType)
+        val requestMessage = adapter.fromJson(message.data) ?: return
+        val request = requestMessage.request()
+        if (request.targetId == userId) {
+            when (requestMessage.type) {
+                "create" -> {
+                    requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Create))
+                    val launchIntent = Intent(this@RequestListenerService, SummonActivity::class.java)
+                    launchIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    launchIntent.putExtra(SummonActivity.IS_INCOMING, true)
+                    launchIntent.putExtra(SummonActivity.IS_WAKEFUL, true)
+                    launchIntent.putExtra(App.REQUEST, request)
+                    this@RequestListenerService.startActivity(launchIntent)
                 }
-            } else if (request.callerId == userId) {
-                when (requestMessage.type) {
-                    "accept" ->
-                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
-                    "reject" ->
-                        requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Reject))
+                "accept" ->
+                    requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
+                "reject" ->
+                    requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Reject))
+                "cancel" -> {
+                    requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Cancel))
                 }
             }
-        }
-
-        override fun onClosed(willReconnect: Boolean) {
-            Log.v("SSE Closed", "reconnect? $willReconnect")
-            if (!willReconnect) {
-                connected = false
+        } else if (request.callerId == userId) {
+            when (requestMessage.type) {
+                "accept" ->
+                    requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Accept))
+                "reject" ->
+                    requestUpdateBus.onNext(SummonRequestUpdate(request, SummonRequestUpdate.UpdateType.Reject))
             }
         }
+    }
 
-        override fun onError(t: Throwable?) {
-            Log.e("SSE Error", "Failed", t)
-        }
+    override fun onClosed() {
+        Log.v("SSE Closed", "")
+        connected = false
+    }
+
+    override fun onError(t: Throwable?) {
+        Log.e("SSE Error", "Failed", t)
     }
 
     enum class ConnectionState(val code: Int) {
