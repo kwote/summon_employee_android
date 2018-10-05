@@ -22,13 +22,13 @@
         <TextView android:layout_width="wrap_content"
             android:id="@+id/post"
             android:layout_height="wrap_content"
-            android:text="@{person.post()}"
+            android:text="@{person.post}"
             app:layout_constraintTop_toBottomOf="@id/fullname"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
             android:id="@+id/email"
             android:layout_height="wrap_content"
-            android:text="@{person.email()}"
+            android:text="@{person.email}"
             app:layout_constraintTop_toBottomOf="@id/post"
             app:layout_constraintLeft_toLeftOf="parent"/>
         <TextView android:layout_width="wrap_content"
@@ -43,7 +43,7 @@
         <TextView android:layout_width="wrap_content"
             android:id="@id/phone_view"
             android:layout_height="wrap_content"
-            android:text="@{person.phone()}"
+            android:text="@{person.phone}"
             android:visibility="@{person.canDial() ? v.GONE : v.VISIBLE}"
             app:layout_constraintTop_toBottomOf="@id/email"
             app:layout_constraintLeft_toLeftOf="parent"/>

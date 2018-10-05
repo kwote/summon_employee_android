@@ -59,7 +59,8 @@
     <string name="disconnect">Disconnect</string>
     <string name="prompt_server_ip">Server URL</string>
     <string name="server_not_found">Server not found</string>
-    <string name="phone_call">Phone call</string>
+    <string name="phone_call">Phone</string>
     <string name="action_cancel">Cancel</string>
     <string name="offline">Offline</string>
+    <string name="prompt_comment">Comment</string>
 </resources>

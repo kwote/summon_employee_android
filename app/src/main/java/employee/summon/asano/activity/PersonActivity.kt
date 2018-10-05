@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
+import android.text.TextUtils
 import android.view.View
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -65,8 +66,8 @@ class PersonActivity : AppCompatActivity() {
             getLastOutgoingSummonRequests(
                     personVM.person.id, 3)
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe({
-                        val active = it.filter { it.pending && it.enabled }
+                    .subscribe({ requests ->
+                        val active = requests.filter { it.pending && it.enabled }
                         pendingRequest.request = if (active.isEmpty()) {
                             null
                         } else {
@@ -131,7 +132,11 @@ class PersonActivity : AppCompatActivity() {
         fun summon(v: View) {
             val app = App.getApp(this@PersonActivity)
             val accessToken = app.accessToken
-            val addRequest = AddSummonRequest(app.user.id, personVM.person.id)
+            var commentStr : String? = null
+            if (!TextUtils.isEmpty(comment.text)) {
+                commentStr = comment.text.toString()
+            }
+            val addRequest = AddSummonRequest(app.user.id, personVM.person.id, commentStr)
             val service = app.getService<SummonRequestService>()
             service.addSummonRequest(addRequest, accessToken)
                     .observeOn(AndroidSchedulers.mainThread())
