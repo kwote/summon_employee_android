@@ -25,6 +25,8 @@ class App : Application() {
             services.clear()
         }
 
+    var login = ""
+
     fun serverAvailable() = retrofit != null
 
     private fun retrofitClient(serverUrl: String): Retrofit? {
@@ -72,5 +74,6 @@ class App : Application() {
         const val REQUEST = "request_extra"
         const val ACCESS_TOKEN = "access_token"
         const val SERVER_URL = "server_url"
+        const val LOGIN = "login"
     }
 }

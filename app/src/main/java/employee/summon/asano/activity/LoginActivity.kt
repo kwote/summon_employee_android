@@ -30,8 +30,11 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
         // Set up the login form.
-        server_login.setText(App.getApp(this).serverUrl)
+        val app = App.getApp(this)
+        server_login.setText(app.serverUrl)
+        email_login.setText(app.login)
 
         password_login.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
             if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
@@ -121,6 +124,7 @@ class LoginActivity : AppCompatActivity() {
                 inProgress = false
                 return
             }
+            app.login = emailStr
             val peopleService = app.getService<PeopleService>()
             val credentials = LoginCredentials(emailStr, passwordStr)
             peopleService.login(credentials)

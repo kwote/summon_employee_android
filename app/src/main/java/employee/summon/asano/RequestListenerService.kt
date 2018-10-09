@@ -53,7 +53,7 @@ class RequestListenerService : Service(), EventHandler {
                     }
                 }
                 ACTION_CLOSE_CONNECTION -> {
-                    closeConnection()
+                    disconnect()
                     stopSelf()
                 }
             }
@@ -64,8 +64,7 @@ class RequestListenerService : Service(), EventHandler {
 
     private fun acquireWakeLock() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                WAKELOCK_TAG)
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
         wakeLock?.acquire(3600 * 8 * 1000)
     }
 
@@ -84,14 +83,18 @@ class RequestListenerService : Service(), EventHandler {
                                 if (valid && !connected) {
                                     openConnection(accessToken, userId)
                                 } else if (!valid && connected) {
-                                    closeConnection()
-                                    val message = Message().apply { what = ConnectionState.Disconnected.code }
-                                    messageBus.onNext(message)
+                                    disconnect()
                                 }
                             }, {
-                                closeConnection()
+                                disconnect()
                             })
                 }.addTo(disposable)
+    }
+
+    private fun disconnect() {
+        closeConnection()
+        val message = Message().apply { what = ConnectionState.Disconnected.code }
+        messageBus.onNext(message)
     }
 
     private fun openConnection(accessToken: String, userId: Int) {
@@ -239,7 +242,7 @@ class RequestListenerService : Service(), EventHandler {
         private const val ACTION_LISTEN_REQUEST = "employee.summon.asano.action.LISTEN_REQUEST"
         private const val ACTION_CLOSE_CONNECTION = "employee.summon.asano.action.CLOSE_CONNECTION"
         private const val USER_ID_EXTRA = "user_id_extra"
-        private const val WAKELOCK_TAG = "SumEmpWakelockTag"
+        private const val WAKELOCK_TAG = "SumEmp:WakelockTag"
         const val PING_PERIOD: Long = 60
         const val ONGOING_NOTIFICATION_ID = 1
         /**
