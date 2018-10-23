@@ -58,6 +58,14 @@ class PersonActivity : AppCompatActivity() {
                 }
             }
         }.addTo(disposable)
+
+        RequestListenerService.messageBus
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {message->
+                    when (message.what) {
+                        RequestListenerService.ConnectionState.Disconnected.code -> finish()
+                    }
+                }.addTo(disposable)
     }
 
     private fun getPendingRequest() {
