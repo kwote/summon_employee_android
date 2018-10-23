@@ -18,9 +18,9 @@ class PersonVM(var person: Person) {
                         "") +
                     " ${person.lastname}"
 
-    fun post() = person.post
-    fun email() = person.email
-    fun phone() = person.phone
+    val post = person.post
+    val email = person.email
+    val phone = person.phone
     fun canDial() = !TextUtils.isEmpty(person.phone)
     fun isMe(context: Context): Boolean = App.getApp(context).user.id == person.id
     fun fullNameOrMe(context: Context): CharSequence? =

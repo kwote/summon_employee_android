@@ -46,15 +46,22 @@
         <TextView android:layout_width="wrap_content"
             android:id="@id/email"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.person.email()}"
+            android:text="@{requestVM.person.email}"
             app:layout_constraintTop_toBottomOf="@id/fullname"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
         <TextView android:layout_width="wrap_content"
-            android:id="@id/phone_view"
             android:layout_height="wrap_content"
-            android:text="@{requestVM.person.phone()}"
+            android:id="@id/phone_view"
+            android:text="@{requestVM.person.phone}"
             app:layout_constraintTop_toBottomOf="@id/email"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"/>
+        <TextView android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/comment"
+            android:text="@{requestVM.request.comment}"
+            app:layout_constraintTop_toBottomOf="@id/phone_view"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
         <Button

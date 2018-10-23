@@ -95,6 +95,17 @@ class MainActivity : AppCompatActivity() {
         sharedPref.apply()
     }
 
+    private fun readLogin(): String {
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        return sharedPref.getString(App.LOGIN, "")
+    }
+
+    private fun saveLogin(login: String) {
+        val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
+        sharedPref.putString(App.LOGIN, login)
+        sharedPref.apply()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -107,8 +118,10 @@ class MainActivity : AppCompatActivity() {
             prepare(accessToken)
         } else {
             val serverUrl = readServerUrl()
+            val login = readLogin()
             val app = App.getApp(this)
             app.serverUrl = serverUrl
+            app.login = login
             if (!app.serverAvailable()) {
                 login()
             } else {
@@ -119,7 +132,7 @@ class MainActivity : AppCompatActivity() {
                     ping(accessToken.id) {
                         initialized = true
                         prepare(accessToken)
-                    }.addTo(disposable)
+                    }
                 }
             }
         }
@@ -137,7 +150,7 @@ class MainActivity : AppCompatActivity() {
                     when (message.what) {
                         RequestListenerService.ConnectionState.Disconnected.code -> login()
                     }
-                }
+                }.addTo(disposable)
     }
 
     override fun onResume() {
@@ -152,8 +165,11 @@ class MainActivity : AppCompatActivity() {
             connect?.isVisible = false
             disconnect?.isVisible = true
         }
-        val serverUrl = App.getApp(this).serverUrl
+        val app = App.getApp(this)
+        val serverUrl = app.serverUrl
         saveServerUrl(serverUrl)
+        val login = app.login
+        saveLogin(login)
         saveAccessToken(accessToken)
         reload()
     }
@@ -292,7 +308,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }, {
                         login()
-                    })
+                    }).addTo(disposable)
 
     private fun reloadPeople() {
         val app = App.getApp(this)

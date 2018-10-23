@@ -61,4 +61,5 @@
     <string name="phone_call">Набрать номер</string>
     <string name="action_cancel">Отменить</string>
     <string name="offline">Оффлайн</string>
+    <string name="prompt_comment">Комментарий</string>
 </resources>
