@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018. $user.name. All rights reserved.
+ * Copyright (c) 2018. Ernest Asanov. All rights reserved.
  */
 
 package employee.summon.asano.activity
@@ -213,8 +213,14 @@ class MainActivity : AppCompatActivity() {
             R.id.logout -> performLogout()
             R.id.connect -> toggleConnection(true)
             R.id.disconnect -> toggleConnection(false)
+            R.id.about -> about()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private fun about() {
+        val intent = Intent(this, AboutActivity::class.java)
+        startActivity(intent)
     }
 
     private var listening = false

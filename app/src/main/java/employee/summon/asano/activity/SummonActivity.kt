@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018. $user.name. All rights reserved.
+ * Copyright (c) 2018. Ernest Asanov. All rights reserved.
  */
 
 package employee.summon.asano.activity

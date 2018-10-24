@@ -33,7 +33,6 @@
     <string name="action_summon">Вызвать</string>
     <string name="call">Позвонить по тел. номеру</string>
     <string name="summon_failed">Вызов не удался</string>
-    <string name="clear">Clear</string>
     <string name="cancel_successful">Вызов отменён</string>
     <string name="action_accept">Принять</string>
     <string name="action_reject">Отказаться</string>
@@ -62,4 +61,7 @@
     <string name="action_cancel">Отменить</string>
     <string name="offline">Оффлайн</string>
     <string name="prompt_comment">Комментарий</string>
+    <string name="about">О программе</string>
+    <string name="version">Версия</string>
+    <string name="description">Приложение "Вызов сотрудника"\nАвтор: Эрнест Асанов\nE-mail: ern.asanov@yandex.ru</string>
 </resources>

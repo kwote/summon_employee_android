@@ -8,6 +8,12 @@
         app:showAsAction="collapseActionView|ifRoom"
         app:actionViewClass="android.support.v7.widget.SearchView"/>
     <item
+        android:id="@+id/about"
+        android:title="@string/about"
+        android:icon="@drawable/about_icon_email"
+        app:showAsAction="ifRoom">
+    </item>
+    <item
         android:id="@+id/connect"
         android:title="@string/connect"
         android:icon="@drawable/baseline_sync_24"

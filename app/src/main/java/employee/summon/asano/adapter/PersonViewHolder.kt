@@ -4,7 +4,6 @@ import android.support.v7.widget.RecyclerView
 import employee.summon.asano.databinding.PersonBinding
 import employee.summon.asano.viewmodel.PersonVM
 
-
 class PersonViewHolder(private val binding: PersonBinding) :
         RecyclerView.ViewHolder(binding.root) {
 

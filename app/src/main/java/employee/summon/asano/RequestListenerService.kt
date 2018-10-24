@@ -28,7 +28,6 @@ import java.net.URI
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 
-
 class RequestListenerService : Service(), EventHandler {
     override fun onBind(intent: Intent?): IBinder? {
         return null

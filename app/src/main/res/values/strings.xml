@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2018. $user.name. All rights reserved.
+  ~ Copyright (c) 2018. Ernest Asanov. All rights reserved.
   -->
 
 <resources>
@@ -19,7 +19,6 @@
     <string name="title_employees">Employees</string>
     <string name="title_incoming_requests">Incoming</string>
     <string name="title_outgoing_requests">Outgoing</string>
-    <string name="title_access_token">Access token</string>
     <string name="prompt_firstname">First Name</string>
     <string name="prompt_lastname">Last Name</string>
     <string name="error_unknown">Unknown error</string>
@@ -34,7 +33,6 @@
     <string name="action_summon">Summon</string>
     <string name="call">Call</string>
     <string name="summon_failed">Summon failed</string>
-    <string name="clear">Clear</string>
     <string name="cancel_successful">Request canceled</string>
     <string name="action_accept">Accept</string>
     <string name="action_reject">Reject</string>
@@ -63,4 +61,8 @@
     <string name="action_cancel">Cancel</string>
     <string name="offline">Offline</string>
     <string name="prompt_comment">Comment</string>
+    <string name="about">About</string>
+    <string name="copy_right" translatable="false">Copyright © %1$d</string>
+    <string name="version">Version</string>
+    <string name="description">Summon Employee application\nAuthor: Ernest Asanov\nEmail: ern.asanov@yandex.ru</string>
 </resources>
