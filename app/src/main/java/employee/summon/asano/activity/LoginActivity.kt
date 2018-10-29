@@ -6,16 +6,13 @@ import android.annotation.TargetApi
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
-import employee.summon.asano.AndroidDisposable
-import employee.summon.asano.App
-import employee.summon.asano.R
-import employee.summon.asano.addTo
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
+import employee.summon.asano.*
 import employee.summon.asano.model.LoginCredentials
 import employee.summon.asano.rest.PeopleService
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -31,8 +28,6 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        // Set up the login form.
-        val app = App.getApp(this)
         server_login.setText(app.serverUrl)
         email_login.setText(app.login)
 
@@ -49,16 +44,15 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun registerNewPerson() {
-        val app = App.getApp(this)
         val serverUrl = server_login.text.toString()
-        if (!verifyServer(app, serverUrl)) return
+        if (!verifyServer(serverUrl)) return
         val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_TASK_ON_HOME
         startActivity(intent)
         finish()
     }
 
-    private fun verifyServer(app: App, serverUrl: String): Boolean {
+    private fun verifyServer(serverUrl: String): Boolean {
         app.serverUrl = serverUrl
         if (!app.serverAvailable()) {
             server_login.error = getString(R.string.server_not_found)
@@ -119,8 +113,7 @@ class LoginActivity : AppCompatActivity() {
             focusView!!.requestFocus()
         } else {
             val serverUrl = server_login.text.toString()
-            val app = App.getApp(this)
-            if (!verifyServer(app, serverUrl)) {
+            if (!verifyServer(serverUrl)) {
                 inProgress = false
                 return
             }
@@ -144,12 +137,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun isEmailValid(email: String): Boolean {
-        //TODO: Replace this with your own logic
         return email.contains("@")
     }
 
     private fun isPasswordValid(password: String): Boolean {
-        //TODO: Replace this with your own logic
         return password.length > 4
     }
 

@@ -7,15 +7,15 @@ package employee.summon.asano.activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.BottomNavigationView
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.SearchView
 import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.core.content.edit
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.JsonEncodingException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
 
     private var selectedItem: SelectedItem = SelectedItem.People
 
-    private val mOnNavigationItemSelectedListener = BottomNavigationView.OnNavigationItemSelectedListener { item ->
+    private val onNavigationItemSelected = BottomNavigationView.OnNavigationItemSelectedListener { item ->
         when (item.itemId) {
             R.id.navigation_employees -> {
                 selectedItem = SelectedItem.People
@@ -86,24 +86,26 @@ class MainActivity : AppCompatActivity() {
 
     private fun readServerUrl(): String {
         val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        return sharedPref.getString(App.SERVER_URL, "")
+        return sharedPref.getString(App.SERVER_URL, "")?:""
     }
 
     private fun saveServerUrl(serverUrl: String) {
-        val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        sharedPref.putString(App.SERVER_URL, serverUrl)
-        sharedPref.apply()
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        sharedPref.edit {
+            putString(App.SERVER_URL, serverUrl)
+        }
     }
 
     private fun readLogin(): String {
         val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        return sharedPref.getString(App.LOGIN, "")
+        return sharedPref.getString(App.LOGIN, "")?:""
     }
 
     private fun saveLogin(login: String) {
-        val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
-        sharedPref.putString(App.LOGIN, login)
-        sharedPref.apply()
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
+        sharedPref.edit {
+            putString(App.LOGIN, login)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +121,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             val serverUrl = readServerUrl()
             val login = readLogin()
-            val app = App.getApp(this)
             app.serverUrl = serverUrl
             app.login = login
             if (!app.serverAvailable()) {
@@ -136,9 +137,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        recycler_view.layoutManager = LinearLayoutManager(this)
+        recycler_view.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this)
 
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener)
+        navigation.setOnNavigationItemSelectedListener(onNavigationItemSelected)
 
         refresher.setOnRefreshListener {
             reload()
@@ -165,7 +166,6 @@ class MainActivity : AppCompatActivity() {
             connect?.isVisible = false
             disconnect?.isVisible = true
         }
-        val app = App.getApp(this)
         val serverUrl = app.serverUrl
         saveServerUrl(serverUrl)
         val login = app.login
@@ -228,7 +228,6 @@ class MainActivity : AppCompatActivity() {
     private fun toggleConnection(toggle: Boolean) {
         if (toggle == listening) return
         if (!listening) {
-            val app = App.getApp(this)
             val accessToken = app.accessToken
             val userId = app.user.id
             RequestListenerService.startActionListenRequest(this, accessToken, userId)
@@ -260,18 +259,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveAccessToken(accessToken: AccessToken) {
-        val app = App.getApp(this)
         app.accessToken = accessToken.id
         app.user = accessToken.user
-        val sharedPref = getPreferences(Context.MODE_PRIVATE).edit()
+        val sharedPref = getPreferences(Context.MODE_PRIVATE)
         val accessTokenStr = moshi.adapter(AccessToken::class.java).toJson(accessToken)
-        sharedPref.putString(App.ACCESS_TOKEN, accessTokenStr)
-        sharedPref.apply()
+        sharedPref.edit {
+            putString(App.ACCESS_TOKEN, accessTokenStr)
+        }
     }
 
     private fun readAccessToken(): AccessToken? {
         val sharedPref = getPreferences(Context.MODE_PRIVATE)
-        val accessTokenStr = sharedPref.getString(App.ACCESS_TOKEN, "")
+        val accessTokenStr = sharedPref.getString(App.ACCESS_TOKEN, "")?:""
         if (TextUtils.isEmpty(accessTokenStr)) {
             return null
         }
@@ -285,10 +284,8 @@ class MainActivity : AppCompatActivity() {
     private val disposable = AndroidDisposable()
 
     private fun performLogout() {
-        val app = App.getApp(this)
         val service = app.getService<PeopleService>()
         RequestListenerService.cancelActionListenRequest(this)
-        //TODO reset token
         service.logout(app.accessToken)
                 .doFinally { login() }
                 .subscribe {}
@@ -303,8 +300,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ping(accessToken: String, onSuccess: () -> Unit) =
-            App.getApp(this)
-                    .getService<PeopleService>()
+            app.getService<PeopleService>()
                     .ping(accessToken)
                     .observeOn(AndroidSchedulers.mainThread()).subscribe({
                         if (it) {
@@ -317,7 +313,6 @@ class MainActivity : AppCompatActivity() {
                     }).addTo(disposable)
 
     private fun reloadPeople() {
-        val app = App.getApp(this)
         app.getService<PeopleService>()
                 .listSummonPeople(app.accessToken)
                 .map { people ->
@@ -339,7 +334,6 @@ class MainActivity : AppCompatActivity() {
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     private fun reloadRequests(incoming: Boolean) {
-        val app = App.getApp(this)
         val peopleService = app.getService<PeopleService>()
         val accessToken = app.accessToken
         val cal = Calendar.getInstance()

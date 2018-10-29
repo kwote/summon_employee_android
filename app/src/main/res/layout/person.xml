@@ -8,7 +8,7 @@
             type="employee.summon.asano.adapter.PeopleAdapter.ClickHandlers"/>
         <import type="android.view.View" alias="v"/>
     </data>
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="@{handlers::clickAction}">
@@ -47,5 +47,5 @@
             android:visibility="@{person.canDial() ? v.GONE : v.VISIBLE}"
             app:layout_constraintTop_toBottomOf="@id/email"
             app:layout_constraintLeft_toLeftOf="parent"/>
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

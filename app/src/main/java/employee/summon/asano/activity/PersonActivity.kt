@@ -2,13 +2,13 @@ package employee.summon.asano.activity
 
 import android.content.Context
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.net.Uri
 import android.os.Bundle
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.google.android.material.snackbar.Snackbar
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import employee.summon.asano.*
@@ -16,6 +16,7 @@ import employee.summon.asano.databinding.PersonActivityBinding
 import employee.summon.asano.model.AddSummonRequest
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonRequest
+import employee.summon.asano.rest.PeopleService
 import employee.summon.asano.rest.SummonRequestService
 import employee.summon.asano.viewmodel.PendingRequestVM
 import employee.summon.asano.viewmodel.PersonVM
@@ -101,17 +102,12 @@ class PersonActivity : AppCompatActivity() {
 
     private fun getLastOutgoingSummonRequests(targetId: Int, count: Int):
             Observable<List<SummonRequest>> {
-        val app = App.getApp(this)
-        val callerId = app.user.id
         val cal = Calendar.getInstance()
         cal.add(Calendar.DATE, -1)
         val date = cal.time
         val filter = mutableMapOf(
                 "where" to mutableMapOf(
                         "and" to mutableListOf(
-                                mutableMapOf(
-                                        "callerId" to callerId
-                                ),
                                 mutableMapOf(
                                         "targetId" to targetId
                                 ),
@@ -126,8 +122,8 @@ class PersonActivity : AppCompatActivity() {
                 "order" to "requested DESC"
         )
         val filterStr = moshi.adapter(Map::class.java).toJson(filter)
-        return app.getService<SummonRequestService>()
-                .listRequests(filterStr, app.accessToken)
+        return app.getService<PeopleService>()
+                .listOutgoingRequests(app.user.id, app.accessToken, filterStr)
     }
 
     private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
@@ -138,7 +134,6 @@ class PersonActivity : AppCompatActivity() {
 
     inner class ClickHandlers(var context: Context) {
         fun summon(v: View) {
-            val app = App.getApp(this@PersonActivity)
             val accessToken = app.accessToken
             var commentStr : String? = null
             if (!TextUtils.isEmpty(comment.text)) {
@@ -161,7 +156,6 @@ class PersonActivity : AppCompatActivity() {
 
         fun cancel(v: View) {
             pendingRequest.request?.id?.let { requestId ->
-                val app = App.getApp(this@PersonActivity)
                 val service = app.getService<SummonRequestService>()
                 service.cancelRequest(requestId, app.accessToken)
                         .observeOn(AndroidSchedulers.mainThread())

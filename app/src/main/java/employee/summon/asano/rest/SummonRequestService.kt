@@ -28,10 +28,4 @@ interface SummonRequestService {
     @DELETE("summonrequests/{id}")
     fun deleteRequest(@Path("id") requestId: Int,
                       @Header("Authorization") accessToken: String): Observable<ResponseBody>
-
-    @GET("summonrequests")
-    fun listRequests(
-            @Query(value = "filter", encoded = true) filter: String,
-            @Header("Authorization") accessToken: String
-    ): Observable<List<SummonRequest>>
 }

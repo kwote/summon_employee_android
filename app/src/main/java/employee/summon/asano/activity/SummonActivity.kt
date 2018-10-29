@@ -7,17 +7,18 @@ package employee.summon.asano.activity
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.databinding.DataBindingUtil
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.support.design.widget.Snackbar
-import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.WindowManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.getSystemService
+import androidx.databinding.DataBindingUtil
+import com.google.android.material.snackbar.Snackbar
 import employee.summon.asano.*
 import employee.summon.asano.App.Companion.REQUEST
 import employee.summon.asano.databinding.SummonActivityBinding
@@ -25,7 +26,6 @@ import employee.summon.asano.model.SummonRequest
 import employee.summon.asano.model.SummonRequestUpdate
 import employee.summon.asano.rest.SummonRequestService
 import employee.summon.asano.viewmodel.SummonRequestVM
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import kotlinx.android.synthetic.main.activity_summon.*
 
@@ -57,8 +57,8 @@ class SummonActivity : AppCompatActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
                 setShowWhenLocked(true)
                 setTurnScreenOn(true)
-                val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-                keyguardManager.requestDismissKeyguard(this, null)
+                val keyguardManager = getSystemService<KeyguardManager>()
+                keyguardManager?.requestDismissKeyguard(this, null)
             } else {
                 this.window.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
@@ -106,15 +106,15 @@ class SummonActivity : AppCompatActivity() {
     }
 
     private fun startSignal() {
-        r?.play()// Get instance of Vibrator from current Context
-        val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        r?.play()
+        val v = getSystemService<Vibrator>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val pattern = VibrationEffect.createWaveform(longArrayOf(0, 100, 1000), 0)
 
-            v.vibrate(pattern)
+            v?.vibrate(pattern)
         } else {
-            v.vibrate(longArrayOf(0, 100, 1000), 0)
+            v?.vibrate(longArrayOf(0, 100, 1000), 0)
         }
     }
 
@@ -145,21 +145,19 @@ class SummonActivity : AppCompatActivity() {
     }
 
     private fun acceptRequest(request: SummonRequest) =
-            App.getApp(this).getService<SummonRequestService>()
+            app.getService<SummonRequestService>()
                     .acceptRequest(request.id)
                     .observeOn(AndroidSchedulers.mainThread())
 
     private fun rejectRequest(request: SummonRequest) =
-            App.getApp(this).getService<SummonRequestService>()
+            app.getService<SummonRequestService>()
                     .rejectRequest(request.id)
                     .observeOn(AndroidSchedulers.mainThread())
 
-    private fun cancelRequest(request: SummonRequest): Observable<SummonRequest> {
-        val app = App.getApp(this)
-        return app.getService<SummonRequestService>()
+    private fun cancelRequest(request: SummonRequest) =
+            app.getService<SummonRequestService>()
                 .cancelRequest(request.id, app.accessToken)
                 .observeOn(AndroidSchedulers.mainThread())
-    }
 
     inner class ClickHandlers(var context: Context) {
         fun accept(v: View) {

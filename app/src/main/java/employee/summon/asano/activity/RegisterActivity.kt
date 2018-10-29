@@ -6,15 +6,15 @@ import android.annotation.TargetApi
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import employee.summon.asano.AndroidDisposable
-import employee.summon.asano.App
 import employee.summon.asano.R
 import employee.summon.asano.addTo
+import employee.summon.asano.app
 import employee.summon.asano.model.AddPerson
 import employee.summon.asano.rest.PeopleService
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -131,7 +131,7 @@ class RegisterActivity : AppCompatActivity() {
             // form field with an error.
             focusView?.requestFocus()
         } else {
-            val service = App.getApp(this).getService<PeopleService>()
+            val service = app.getService<PeopleService>()
             val addPerson = AddPerson(firstName, lastName, patronymic, post, email, phone, password)
             service.addPerson(addPerson)
                     .observeOn(AndroidSchedulers.mainThread())
@@ -165,12 +165,10 @@ class RegisterActivity : AppCompatActivity() {
     }
 
     private fun isEmailValid(email: String): Boolean {
-        //TODO: Replace this with your own logic
         return email.contains("@")
     }
 
     private fun isPasswordValid(password: String): Boolean {
-        //TODO: Replace this with your own logic
         return password.length > 4
     }
 

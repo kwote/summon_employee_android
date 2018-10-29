@@ -1,10 +1,9 @@
 package employee.summon.asano
 
 import android.app.Application
-import android.content.Context
-import android.support.v7.app.AppCompatDelegate
 import android.text.TextUtils
 import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
 import employee.summon.asano.model.Person
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -69,8 +68,6 @@ class App : Application() {
     }
 
     companion object {
-        fun getApp(context: Context) = context.applicationContext as App
-
         const val REQUEST = "request_extra"
         const val ACCESS_TOKEN = "access_token"
         const val SERVER_URL = "server_url"

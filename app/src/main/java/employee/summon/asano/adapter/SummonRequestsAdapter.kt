@@ -1,19 +1,18 @@
 package employee.summon.asano.adapter
 
 import android.content.Context
-import android.databinding.DataBindingUtil
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Filter
+import androidx.databinding.DataBindingUtil
 import employee.summon.asano.databinding.SummonRequestBinding
 import employee.summon.asano.viewmodel.SummonRequestVM
 
 class SummonRequestsAdapter(private val requests: List<SummonRequestVM>, private val click: (r: SummonRequestVM?)->Unit) :
         FilterableAdapter<RequestViewHolder>() {
     var filteredRequests = requests
-    inner class ClickHandlers(var context: Context)
-    {
+    inner class ClickHandlers(var context: Context) {
         fun clickAction(v: View) {
             val binding = DataBindingUtil.findBinding<SummonRequestBinding>(v)
             val r = binding?.request

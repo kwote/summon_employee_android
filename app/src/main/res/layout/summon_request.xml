@@ -10,9 +10,9 @@
         <variable
             name="handlers"
             type="employee.summon.asano.adapter.SummonRequestsAdapter.ClickHandlers"/>
-        <import type="android.support.v4.content.ContextCompat" />
+        <import type="androidx.core.content.ContextCompat" />
     </data>
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="4dp"
@@ -37,5 +37,5 @@
             app:layout_constraintTop_toBottomOf="@id/person_name"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"/>
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -11,9 +11,9 @@
             name="handlers"
             type="employee.summon.asano.activity.SummonActivity.ClickHandlers"/>
         <import type="android.view.View" alias="v"/>
-        <import type="android.support.v4.content.ContextCompat" />
+        <import type="androidx.core.content.ContextCompat" />
     </data>
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@{ContextCompat.getColor(context, requestVM.background())}">
@@ -109,5 +109,5 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"/>
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

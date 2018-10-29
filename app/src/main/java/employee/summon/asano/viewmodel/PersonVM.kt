@@ -3,9 +3,9 @@ package employee.summon.asano.viewmodel
 import android.content.Context
 import android.text.TextUtils
 import android.text.format.DateUtils
-import employee.summon.asano.App
 import employee.summon.asano.R
 import employee.summon.asano.RequestListenerService
+import employee.summon.asano.app
 import employee.summon.asano.model.Person
 import employee.summon.asano.model.SummonPerson
 
@@ -22,7 +22,7 @@ class PersonVM(var person: Person) {
     val email = person.email
     val phone = person.phone
     fun canDial() = !TextUtils.isEmpty(person.phone)
-    fun isMe(context: Context): Boolean = App.getApp(context).user.id == person.id
+    fun isMe(context: Context): Boolean = context.app.user.id == person.id
     fun fullNameOrMe(context: Context): CharSequence? =
             if (isMe(context)) {
                 context.getString(R.string.me)

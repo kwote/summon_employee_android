@@ -8,9 +8,10 @@ import android.os.Build
 import android.os.IBinder
 import android.os.Message
 import android.os.PowerManager
-import android.support.v4.app.NotificationCompat
-import android.support.v4.app.NotificationManagerCompat
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.getSystemService
 import com.launchdarkly.eventsource.EventHandler
 import com.launchdarkly.eventsource.EventSource
 import com.launchdarkly.eventsource.MessageEvent
@@ -62,8 +63,8 @@ class RequestListenerService : Service(), EventHandler {
     }
 
     private fun acquireWakeLock() {
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+        val powerManager = getSystemService<PowerManager>()
+        wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
         wakeLock?.acquire(3600 * 8 * 1000)
     }
 
@@ -74,7 +75,6 @@ class RequestListenerService : Service(), EventHandler {
     private fun schedulePing() {
         pingSchedule = Observable.interval(PING_PERIOD, PING_PERIOD, TimeUnit.SECONDS)
                 .subscribe { _ ->
-                    val app = App.getApp(this)
                     accessToken = app.accessToken
                     app.getService<PeopleService>()
                             .ping(accessToken)
@@ -100,7 +100,7 @@ class RequestListenerService : Service(), EventHandler {
         val headers = Headers.of(mutableMapOf("Authorization" to accessToken))
         eventSource = EventSource.Builder(
                 this,
-                URI.create(App.getApp(this).serverUrl + "/api/" + REQUEST_URL_SUFFIX +
+                URI.create(app.serverUrl + "/api/" + REQUEST_URL_SUFFIX +
                         URLEncoder.encode(String.format(
                                 REQUEST_URL_ESC_SUFFIX, userId, userId
                         ), "UTF-8")))
@@ -125,14 +125,14 @@ class RequestListenerService : Service(), EventHandler {
     private fun prepareChannel(context: Context, id: String, importance: Int) {
         val appName = context.getString(R.string.app_name)
         val description = context.getString(R.string.notifications_channel_description)
-        val nm = context.getSystemService(Activity.NOTIFICATION_SERVICE) as NotificationManager
+        val nm = getSystemService<NotificationManager>()
 
-        var nChannel: NotificationChannel? = nm.getNotificationChannel(id)
+        var nChannel: NotificationChannel? = nm?.getNotificationChannel(id)
 
         if (nChannel == null) {
             nChannel = NotificationChannel(id, appName, importance)
             nChannel.description = description
-            nm.createNotificationChannel(nChannel)
+            nm?.createNotificationChannel(nChannel)
         }
     }
 

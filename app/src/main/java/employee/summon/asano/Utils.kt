@@ -1,5 +1,6 @@
 package employee.summon.asano
 
+import android.content.Context
 import io.reactivex.disposables.Disposable
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -27,3 +28,5 @@ fun String.getDateWithServerTimeStamp(): Date? {
 
 fun Disposable.addTo(androidDisposable: AndroidDisposable): Disposable
         = apply { androidDisposable.add(this) }
+
+val Context.app get() = this.applicationContext as App
